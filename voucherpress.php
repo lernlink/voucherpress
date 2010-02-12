@@ -2,20 +2,20 @@
 /**
  * @package VoucherPress
  * @author Chris Taylor
- * @version 0.2
+ * @version 0.3
  */
 /*
 Plugin Name: VoucherPress
 Plugin URI: http://www.stillbreathing.co.uk/projects/voucherpress/
 Description: VoucherPress allows you to offer downloadable, printable vouchers from your Wordpress site. Vouchers can be available to anyone, or require a name and email address before they can be downloaded.
 Author: Chris Taylor
-Version: 0.2
+Version: 0.3
 Author URI: http://www.stillbreathing.co.uk/
 */
 
 // set the current version
 function voucherpress_current_version() {
-	return "0.1";
+	return "0.3";
 }
 
 // set activation hook
@@ -77,21 +77,31 @@ function voucherpress_template() {
 
 // activate the plugin
 function voucherpress_activate() {
-	// create tables
-	voucherpress_create_tables();
-	// save options
-	$data = array(
-		"register_title" => "Enter your email address",
-		"register_message" => "You must supply your name and email address to download this voucher. Please enter your details below, a link will be sent to your email address for you to download the voucher.",
-		"email_label" => "Your email address",
-		"name_label" => "Your name",
-		"button_text" => "Request voucher",
-		"bad_email_message" => "Sorry, your email address seems to be invalid. Please try again.",
-		"thanks_message" => "Thank you, a link has been sent to your email address for you to download this voucher.",
-		"voucher_not_found_message" => "Sorry, the voucher you are looking for cannot be found."
-		);
-	add_option ( "voucherpress_data", maybe_serialize( $data ) );
-	add_option ( "voucherpress_version", "0.1" );
+	// if PHP is less than version 5
+	if ( version_compare( PHP_VERSION, '5.0.0', '<' ) )
+	{
+		echo '
+		<div id="message" class="error">
+			<p><strong>' . __( "Sorry, your PHP version must be 5 or above. Please contact your server administrator for help.", "voucherpress" ) . '</strong></p>
+		</div>
+		';
+	} else {
+		// create tables
+		voucherpress_create_tables();
+		// save options
+		$data = array(
+			"register_title" => "Enter your email address",
+			"register_message" => "You must supply your name and email address to download this voucher. Please enter your details below, a link will be sent to your email address for you to download the voucher.",
+			"email_label" => "Your email address",
+			"name_label" => "Your name",
+			"button_text" => "Request voucher",
+			"bad_email_message" => "Sorry, your email address seems to be invalid. Please try again.",
+			"thanks_message" => "Thank you, a link has been sent to your email address for you to download this voucher.",
+			"voucher_not_found_message" => "Sorry, the voucher you are looking for cannot be found."
+			);
+		add_option ( "voucherpress_data", maybe_serialize( $data ) );
+		add_option ( "voucherpress_version", voucherpress_current_version() );
+	}
 }
 
 // get the currently installed version
