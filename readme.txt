@@ -51,3 +51,8 @@ Not at the moment, but I'm sure it could if those e-commerce plugin developers w
 3. A sample voucher
 4. A Microsoft Window print dialog showing the voucher on the paper
 5. All the default templates
+
+== Changelog ==
+
+0.2 (2010/02/12) Fixed bugs with SQL
+0.1 (2010/02/11) Initial version

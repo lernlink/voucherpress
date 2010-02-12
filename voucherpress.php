@@ -2,14 +2,14 @@
 /**
  * @package VoucherPress
  * @author Chris Taylor
- * @version 0.1
+ * @version 0.2
  */
 /*
 Plugin Name: VoucherPress
 Plugin URI: http://www.stillbreathing.co.uk/projects/voucherpress/
 Description: VoucherPress allows you to offer downloadable, printable vouchers from your Wordpress site. Vouchers can be available to anyone, or require a name and email address before they can be downloaded.
 Author: Chris Taylor
-Version: 0.1
+Version: 0.2
 Author URI: http://www.stillbreathing.co.uk/
 */
 
@@ -131,89 +131,89 @@ function voucherpress_create_tables() {
 		
 		// table to store the vouchers
 		$sql = "CREATE TABLE " . $prefix . "voucherpress_vouchers (
-			  `id` mediumint(9) NOT NULL AUTO_INCREMENT,
-			  `blog_id` mediumint NOT NULL,
-			  `time` bigint(11) DEFAULT '0' NOT NULL,
-			  `name` VARCHAR(50) NOT NULL,
+			  id mediumint(9) NOT NULL AUTO_INCREMENT,
+			  blog_id mediumint NOT NULL,
+			  time bigint(11) DEFAULT '0' NOT NULL,
+			  name VARCHAR(50) NOT NULL,
 			  `text` varchar(250) NOT NULL,
-			  `terms` varchar(500) NOT NULL,
-			  `template` varchar(55) NOT NULL,
-			  `font` varchar(55) DEFAULT 'helvetica' NOT NULL,
-			  `require_email` TINYINT DEFAULT 1 NOT NULL,
+			  terms varchar(500) NOT NULL,
+			  template varchar(55) NOT NULL,
+			  font varchar(55) DEFAULT 'helvetica' NOT NULL,
+			  require_email TINYINT DEFAULT 1 NOT NULL,
 			  `limit` MEDIUMINT(9) NOT NULL DEFAULT 0,
-			  `guid` varchar(36) NOT NULL,
-			  `live` TINYINT DEFAULT '0',
+			  guid varchar(36) NOT NULL,
+			  live TINYINT DEFAULT '0',
 			  PRIMARY KEY  id (id)
 			);";
 		dbDelta( $sql );
 		
 		// table to store downloads
 		$sql = "CREATE TABLE " . $prefix . "voucherpress_downloads (
-			  `id` mediumint(9) NOT NULL AUTO_INCREMENT,
-			  `voucherid` mediumint(9) NOT NULL,
-			  `time` bigint(11) DEFAULT '0' NOT NULL,
-			  `ip` VARCHAR(15) NOT NULL,
-			  `name` VARCHAR(55) NULL,
-			  `email` varchar(255) NULL,
-			  `guid` varchar(36) NOT NULL,
-			  `downloaded` TINYINT DEFAULT '0',
+			  id mediumint(9) NOT NULL AUTO_INCREMENT,
+			  voucherid mediumint(9) NOT NULL,
+			  time bigint(11) DEFAULT '0' NOT NULL,
+			  ip VARCHAR(15) NOT NULL,
+			  name VARCHAR(55) NULL,
+			  email varchar(255) NULL,
+			  guid varchar(36) NOT NULL,
+			  downloaded TINYINT DEFAULT '0',
 			  PRIMARY KEY  id (id)
 			);";
 		dbDelta( $sql );
 		
 		// table to store templates
 		$sql = "CREATE TABLE " . $prefix . "voucherpress_templates (
-			  `id` mediumint(9) NOT NULL AUTO_INCREMENT,
-			  `blog_id` mediumint NOT NULL,
-			  `time` bigint(11) DEFAULT '0' NOT NULL,
-			  `name` VARCHAR(55) NOT NULL,
-			  `live` tinyint DEFAULT '1',
+			  id mediumint(9) NOT NULL AUTO_INCREMENT,
+			  blog_id mediumint NOT NULL,
+			  time bigint(11) DEFAULT '0' NOT NULL,
+			  name VARCHAR(55) NOT NULL,
+			  live tinyint DEFAULT '1',
 			  PRIMARY KEY  id (id)
 			);";
 		dbDelta( $sql );
 		
-		$wpdb->query("insert into " . $prefix . "voucherpress_templates (`name`, `live`, `blog_id`) values ('Plain black border', 1, 0);");
-		$wpdb->query("insert into " . $prefix . "voucherpress_templates (`name`, `live`, `blog_id`) values ('Mint chocolate', 1, 0);");
-		$wpdb->query("insert into " . $prefix . "voucherpress_templates (`name`, `live`, `blog_id`) values ('Red floral border', 1, 0);");
-		$wpdb->query("insert into " . $prefix . "voucherpress_templates (`name`, `live`, `blog_id`) values ('Single red rose (top left)', 1, 0);");
-		$wpdb->query("insert into " . $prefix . "voucherpress_templates (`name`, `live`, `blog_id`) values ('Red flowers', 1, 0);");
-		$wpdb->query("insert into " . $prefix . "voucherpress_templates (`name`, `live`, `blog_id`) values ('Pink flowers', 1, 0);");
-		$wpdb->query("insert into " . $prefix . "voucherpress_templates (`name`, `live`, `blog_id`) values ('Abstract green bubbles', 1, 0);");
-		$wpdb->query("insert into " . $prefix . "voucherpress_templates (`name`, `live`, `blog_id`) values ('International post', 1, 0);");
-		$wpdb->query("insert into " . $prefix . "voucherpress_templates (`name`, `live`, `blog_id`) values ('Gold ribbon', 1, 0);");
-		$wpdb->query("insert into " . $prefix . "voucherpress_templates (`name`, `live`, `blog_id`) values ('Monochrome bubble border', 1, 0);");
-		$wpdb->query("insert into " . $prefix . "voucherpress_templates (`name`, `live`, `blog_id`) values ('Colourful swirls', 1, 0);");
-		$wpdb->query("insert into " . $prefix . "voucherpress_templates (`name`, `live`, `blog_id`) values ('Red gift bag', 1, 0);");
-		$wpdb->query("insert into " . $prefix . "voucherpress_templates (`name`, `live`, `blog_id`) values ('Blue ribbon', 1, 0);");
-		$wpdb->query("insert into " . $prefix . "voucherpress_templates (`name`, `live`, `blog_id`) values ('Autumn floral border', 1, 0);");
-		$wpdb->query("insert into " . $prefix . "voucherpress_templates (`name`, `live`, `blog_id`) values ('Yellow gift boxes', 1, 0);");
-		$wpdb->query("insert into " . $prefix . "voucherpress_templates (`name`, `live`, `blog_id`) values ('Wrought iron border', 1, 0);");
-		$wpdb->query("insert into " . $prefix . "voucherpress_templates (`name`, `live`, `blog_id`) values ('Abstract rainbow flowers', 1, 0);");
-		$wpdb->query("insert into " . $prefix . "voucherpress_templates (`name`, `live`, `blog_id`) values ('Christmas holly border', 1, 0);");
-		$wpdb->query("insert into " . $prefix . "voucherpress_templates (`name`, `live`, `blog_id`) values ('Small gold ribbon', 1, 0);");
-		$wpdb->query("insert into " . $prefix . "voucherpress_templates (`name`, `live`, `blog_id`) values ('Small red ribbon', 1, 0);");
-		$wpdb->query("insert into " . $prefix . "voucherpress_templates (`name`, `live`, `blog_id`) values ('White gift boxes', 1, 0);");
-		$wpdb->query("insert into " . $prefix . "voucherpress_templates (`name`, `live`, `blog_id`) values ('Glass flowers border', 1, 0);");
-		$wpdb->query("insert into " . $prefix . "voucherpress_templates (`name`, `live`, `blog_id`) values ('Single red rose (bottom centre)', 1, 0);");
-		$wpdb->query("insert into " . $prefix . "voucherpress_templates (`name`, `live`, `blog_id`) values ('Fern border', 1, 0);");
-		$wpdb->query("insert into " . $prefix . "voucherpress_templates (`name`, `live`, `blog_id`) values ('Blue floral watermark', 1, 0);");
-		$wpdb->query("insert into " . $prefix . "voucherpress_templates (`name`, `live`, `blog_id`) values ('Monochrome ivy border', 1, 0);");
-		$wpdb->query("insert into " . $prefix . "voucherpress_templates (`name`, `live`, `blog_id`) values ('Ornate border', 1, 0);");
-		$wpdb->query("insert into " . $prefix . "voucherpress_templates (`name`, `live`, `blog_id`) values ('Winter flower corners', 1, 0);");
-		$wpdb->query("insert into " . $prefix . "voucherpress_templates (`name`, `live`, `blog_id`) values ('Spring flower corners', 1, 0);");
-		$wpdb->query("insert into " . $prefix . "voucherpress_templates (`name`, `live`, `blog_id`) values ('Pattern border', 1, 0);");
-		$wpdb->query("insert into " . $prefix . "voucherpress_templates (`name`, `live`, `blog_id`) values ('Orange flower with bar', 1, 0);");
-		$wpdb->query("insert into " . $prefix . "voucherpress_templates (`name`, `live`, `blog_id`) values ('Small coat of arms', 1, 0);");
-		$wpdb->query("insert into " . $prefix . "voucherpress_templates (`name`, `live`, `blog_id`) values ('Grunge border', 1, 0);");
-		$wpdb->query("insert into " . $prefix . "voucherpress_templates (`name`, `live`, `blog_id`) values ('Coffee beans', 1, 0);");
-		$wpdb->query("insert into " . $prefix . "voucherpress_templates (`name`, `live`, `blog_id`) values ('Blue gift boxes', 1, 0);");
-		$wpdb->query("insert into " . $prefix . "voucherpress_templates (`name`, `live`, `blog_id`) values ('Sprint flowers border', 1, 0);");
-		$wpdb->query("insert into " . $prefix . "voucherpress_templates (`name`, `live`, `blog_id`) values ('Ornate magenta border', 1, 0);");
-		$wpdb->query("insert into " . $prefix . "voucherpress_templates (`name`, `live`, `blog_id`) values ('Mexico border', 1, 0);");
-		$wpdb->query("insert into " . $prefix . "voucherpress_templates (`name`, `live`, `blog_id`) values ('Chalk border', 1, 0);");
-		$wpdb->query("insert into " . $prefix . "voucherpress_templates (`name`, `live`, `blog_id`) values ('Thick border', 1, 0);");
-		$wpdb->query("insert into " . $prefix . "voucherpress_templates (`name`, `live`, `blog_id`) values ('Dark chalk border', 1, 0);");
-		$wpdb->query("insert into " . $prefix . "voucherpress_templates (`name`, `live`, `blog_id`) values ('Ink border', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Plain black border', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Mint chocolate', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Red floral border', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Single red rose (top left)', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Red flowers', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Pink flowers', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Abstract green bubbles', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('International post', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Gold ribbon', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Monochrome bubble border', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Colourful swirls', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Red gift bag', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Blue ribbon', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Autumn floral border', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Yellow gift boxes', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Wrought iron border', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Abstract rainbow flowers', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Christmas holly border', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Small gold ribbon', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Small red ribbon', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('White gift boxes', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Glass flowers border', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Single red rose (bottom centre)', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Fern border', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Blue floral watermark', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Monochrome ivy border', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Ornate border', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Winter flower corners', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Spring flower corners', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Pattern border', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Orange flower with bar', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Small coat of arms', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Grunge border', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Coffee beans', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Blue gift boxes', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Sprint flowers border', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Ornate magenta border', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Mexico border', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Chalk border', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Thick border', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Dark chalk border', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Ink border', 1, 0);");
 	
 		// update the version
 		voucherpress_update_version();
@@ -266,7 +266,7 @@ function voucherpress_site_admin()
 		voucherpress_table_footer();
 	} else {
 		echo '
-		<p>' . __( "No vouchers found", "voucherpress" ) . '</p>
+		<p>' . __( 'No vouchers found. <a href="admin.php?page=vouchers-create">Create your first voucher here.</a>', "voucherpress" ) . '</p>
 		';
 	}
 	echo '
@@ -292,7 +292,7 @@ function voucherpress_site_admin()
 		voucherpress_table_footer();
 	} else {
 		echo '
-		<p>' . __( "No vouchers found", "voucherpress" ) . '</p>
+		<p>' . __( 'No vouchers found. <a href="admin.php?page=vouchers-create">Create your first voucher here.</a>', "voucherpress" ) . '</p>
 		';
 	}
 	echo '
@@ -332,7 +332,7 @@ function vouchers_admin()
 			voucherpress_table_footer();
 		} else {
 			echo '
-			<p>' . __( "No vouchers found", "voucherpress" ) . '</p>
+			<p>' . __( 'No vouchers found. <a href="admin.php?page=vouchers-create">Create your first voucher here.</a>', "voucherpress" ) . '</p>
 			';
 		}
 		echo '
@@ -358,7 +358,7 @@ function vouchers_admin()
 			voucherpress_table_footer();
 		} else {
 			echo '
-			<p>' . __( "No vouchers found", "voucherpress" ) . '</p>
+			<p>' . __( 'No vouchers found. <a href="admin.php?page=vouchers-create">Create your first voucher here.</a>', "voucherpress" ) . '</p>
 			';
 		}
 		echo '
@@ -1173,7 +1173,7 @@ function voucherpress_create_voucher( $name, $require_email, $limit, $text, $tem
 	$prefix = $wpdb->prefix;
 	if ( $wpdb->base_prefix != "") { $prefix = $wpdb->base_prefix; }
 	$sql = $wpdb->prepare( "insert into " . $prefix . "voucherpress_vouchers 
-	(`blog_id`, `name`, `text`, `terms`, `template`, `font`, `require_email`, `limit`, `guid`, `time`, `live`) 
+	(blog_id, name, `text`, terms, template, font, require_email, `limit`, guid, time, live) 
 	values 
 	(%d, %s, %s, %s, %d, %s, %d, %d, %s, %d, %d);", 
 	$blog_id, $name, $text, $terms, $template, $font, $require_email, $limit, $guid, time(), 1 );
@@ -1331,12 +1331,12 @@ function voucherpress_get_vouchers( $num = 25, $all=false ) {
 	if ($num == 0) { $limit = ""; }
 	$prefix = $wpdb->prefix;
 	if ( $wpdb->base_prefix != "") { $prefix = $wpdb->base_prefix; }
-	$sql = $wpdb->prepare( "select v.`id`, v.`name`, v.`text`, v.`terms`, v.`require_email`, v.`limit`, v.`live`, v.`guid`, 
-(select count(d.`id`) from wp_voucherpress_downloads d where d.`voucherid` = v.`id`) as downloads
+	$sql = $wpdb->prepare( "select v.id, v.name, v.`text`, v.terms, v.require_email, v.`limit`, v.live, v.guid, 
+(select count(d.id) from wp_voucherpress_downloads d where d.voucherid = v.id) as downloads
 from " . $prefix . "voucherpress_vouchers v
-where (%s = '1' or v.`live` = 1)
-and v.`blog_id` = %d
-order by v.`time` desc 
+where (%s = '1' or v.live = 1)
+and v.blog_id = %d
+order by v.time desc 
 " . $limit . ";", $showall, $blog_id );
 	return $wpdb->get_results( $sql );
 }
@@ -1349,13 +1349,13 @@ function voucherpress_get_all_popular_vouchers( $num = 25, $start = 0 ) {
 	if ($num == 0) { $limit = ""; }
 	$prefix = $wpdb->prefix;
 	if ( $wpdb->base_prefix != "") { $prefix = $wpdb->base_prefix; }
-	$sql = "select b.domain, b.path, v.`id`, v.`name`, v.`text`, v.`terms`, v.`require_email`, v.`limit`, v.`live`, v.`guid`, 
-count(d.`id`) as downloads
+	$sql = "select b.domain, b.path, v.id, v.name, v.`text`, v.terms, v.require_email, v.`limit`, v.live, v.guid, 
+count(d.id) as downloads
 from " . $prefix . "voucherpress_downloads d 
-inner join " . $prefix . "voucherpress_vouchers v on v.`id` = d.`voucherid`
+inner join " . $prefix . "voucherpress_vouchers v on v.id = d.voucherid
 inner join " . $wpdb->base_prefix . "blogs b on b.blog_id = v.blog_id
-group by v.`id`
-order by count(d.`id`) desc
+group by v.id
+order by count(d.id) desc
 " . $limit . ";";
 	return $wpdb->get_results( $sql );
 }
@@ -1368,13 +1368,13 @@ function voucherpress_get_popular_vouchers( $num = 25 ) {
 	if ($num == 0) { $limit = ""; }
 	$prefix = $wpdb->prefix;
 	if ( $wpdb->base_prefix != "") { $prefix = $wpdb->base_prefix; }
-	$sql = $wpdb->prepare( "select v.`id`, v.`name`, v.`text`, v.`terms`, v.`require_email`, v.`limit`, v.`live`, v.`guid`, 
-count(d.`id`) as downloads
+	$sql = $wpdb->prepare( "select v.id, v.name, v.`text`, v.terms, v.require_email, v.`limit`, v.live, v.guid, 
+count(d.id) as downloads
 from " . $prefix . "voucherpress_downloads d 
-inner join " . $prefix . "voucherpress_vouchers v on v.`id` = d.`voucherid`
-where v.`blog_id` = %d
-group by v.`id`
-order by count(d.`id`) desc
+inner join " . $prefix . "voucherpress_vouchers v on v.id = d.voucherid
+where v.blog_id = %d
+group by v.id
+order by count(d.id) desc
 " . $limit . ";", $blog_id );
 	return $wpdb->get_results( $sql );
 }
@@ -1391,13 +1391,13 @@ function voucherpress_get_voucher( $voucher, $live = 1, $code = "" ) {
 	// get by id
 	if ( is_numeric( $voucher ) ) {
 		$sql = $wpdb->prepare( "select v.id, v.name, v.`text`, v.terms, v.font, v.template, v.require_email, v.`limit`, v.guid, v.live, '' as registered_email, '' as registered_name,
-		count(d.`id`) as downloads
+		count(d.id) as downloads
 		from " . $prefix . "voucherpress_vouchers v
-		left outer join " . $prefix . "voucherpress_downloads d on d.`voucherid` = v.`id`
+		left outer join " . $prefix . "voucherpress_downloads d on d.voucherid = v.id
 		where 
 		(%d = 0 or v.live = 1)
-		and v.`id` = %d
-		and v.`blog_id` = %d", 
+		and v.id = %d
+		and v.blog_id = %d", 
 		$live, $voucher, $blog_id );
 	// get by guid
 	} else {
@@ -1405,24 +1405,24 @@ function voucherpress_get_voucher( $voucher, $live = 1, $code = "" ) {
 		if ( $code != "")
 		{
 			$sql = $wpdb->prepare( "select v.id, v.name, v.`text`, v.terms, v.font, v.template, v.require_email, v.`limit`, v.guid, v.live, r.email as registered_email, r.name as registered_name,
-			count(d.`id`) as downloads
+			count(d.id) as downloads
 			from " . $prefix . "voucherpress_vouchers v
-			left outer join " . $prefix . "voucherpress_downloads d on d.`voucherid` = v.`id`
-			left outer join " . $prefix . "voucherpress_downloads r on r.`voucherid` = v.`id` and r.`guid` = %s
+			left outer join " . $prefix . "voucherpress_downloads d on d.voucherid = v.id
+			left outer join " . $prefix . "voucherpress_downloads r on r.voucherid = v.id and r.guid = %s
 			where 
 			(%d = 0 or v.live = 1)
-			and v.`guid` = %s
-			and v.`blog_id` = %d", 
+			and v.guid = %s
+			and v.blog_id = %d", 
 			$live, $code, $voucher, $blog_id );
 		} else {
 			$sql = $wpdb->prepare( "select v.id, v.name, v.`text`, v.terms, v.font, v.template, v.require_email, v.`limit`, v.guid, v.live, '' as registered_email, '' as registered_name,
-			count(d.`id`) as downloads
+			count(d.id) as downloads
 			from " . $prefix . "voucherpress_vouchers v
-			left outer join " . $prefix . "voucherpress_downloads d on d.`voucherid` = v.`id`
+			left outer join " . $prefix . "voucherpress_downloads d on d.voucherid = v.id
 			where 
 			(%d = 0 or v.live = 1)
-			and v.`guid` = %s
-			and v.`blog_id` = %d", 
+			and v.guid = %s
+			and v.blog_id = %d", 
 			$live, $voucher, $blog_id );
 		}
 	}
