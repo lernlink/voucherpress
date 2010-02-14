@@ -54,6 +54,7 @@ Not at the moment, but I'm sure it could if those e-commerce plugin developers w
 
 == Changelog ==
 
+0.4 (2010/02/14) Fixed bug with email registration. Changed PDF to force download.
 0.3 (2010/02/12) Added check for PHP5
 0.2 (2010/02/12) Fixed bugs with SQL
 0.1 (2010/02/11) Initial version

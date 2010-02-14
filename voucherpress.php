@@ -2,20 +2,20 @@
 /**
  * @package VoucherPress
  * @author Chris Taylor
- * @version 0.3
+ * @version 0.4
  */
 /*
 Plugin Name: VoucherPress
 Plugin URI: http://www.stillbreathing.co.uk/projects/voucherpress/
 Description: VoucherPress allows you to offer downloadable, printable vouchers from your Wordpress site. Vouchers can be available to anyone, or require a name and email address before they can be downloaded.
 Author: Chris Taylor
-Version: 0.3
+Version: 0.4
 Author URI: http://www.stillbreathing.co.uk/
 */
 
 // set the current version
 function voucherpress_current_version() {
-	return "0.3";
+	return "0.4";
 }
 
 // set activation hook
@@ -217,7 +217,7 @@ function voucherpress_create_tables() {
 		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Grunge border', 1, 0);");
 		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Coffee beans', 1, 0);");
 		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Blue gift boxes', 1, 0);");
-		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Sprint flowers border', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Spring flowers border', 1, 0);");
 		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Ornate magenta border', 1, 0);");
 		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Mexico border', 1, 0);");
 		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Chalk border', 1, 0);");
@@ -950,15 +950,25 @@ function voucherpress_pretty_urls() {
 }
 
 // create a URL to a voucherpress page
-function voucherpress_link( $voucher_guid, $code = "" ) {
+function voucherpress_link( $voucher_guid, $code = "", $encode = true ) {
 	if ( voucherpress_pretty_urls() ) {
 		if ( $code != "" ) {
-			$email = "&amp;code=" . urlencode( $code );
+			if ( $encode )
+			{
+				$code = "&amp;code=" . urlencode( $code );
+			} else {
+				$code = "&code=" . urlencode( $code );
+			}
 		}
 		return get_option( "siteurl" ) . "/?voucher=" . $voucher_guid . $code;
 	}
 	if ( $code != "" ) {
-		$email = "&amp;code=" . urlencode( $code );
+		if ( $encode )
+		{
+			$code = "&amp;code=" . urlencode( $code );
+		} else {
+			$code = "&code=" . urlencode( $code );
+		}
 	}
 	return get_option( "siteurl" ) . "/?voucher=" . $voucher_guid . $code;
 }
@@ -1392,7 +1402,7 @@ order by count(d.id) desc
 // ==========================================================================================
 // individual voucher functions
 
-// get a voucher by guid
+// get a voucher by id or guid
 function voucherpress_get_voucher( $voucher, $live = 1, $code = "" ) {
 	$blog_id = voucherpress_blog_id();
 	global $wpdb;
@@ -1420,10 +1430,10 @@ function voucherpress_get_voucher( $voucher, $live = 1, $code = "" ) {
 			left outer join " . $prefix . "voucherpress_downloads d on d.voucherid = v.id
 			left outer join " . $prefix . "voucherpress_downloads r on r.voucherid = v.id and r.guid = %s
 			where 
-			(%d = 0 or v.live = 1)
+			v.live = 1
 			and v.guid = %s
 			and v.blog_id = %d", 
-			$live, $code, $voucher, $blog_id );
+			$code, $voucher, $blog_id );
 		} else {
 			$sql = $wpdb->prepare( "select v.id, v.name, v.`text`, v.terms, v.font, v.template, v.require_email, v.`limit`, v.guid, v.live, '' as registered_email, '' as registered_name,
 			count(d.id) as downloads
@@ -1483,7 +1493,6 @@ function voucherpress_download_voucher( $voucher_guid, $code = "" ) {
 function voucherpress_render_voucher( $voucher, $code ) {
 
 	global $current_user;
-
 	// get the voucher template image
 	if( voucherpress_template_exists( $voucher->template ) )
 	{
@@ -1571,7 +1580,7 @@ function voucherpress_render_voucher( $voucher, $code ) {
 		$pdf->Write( 5,  stripslashes( $voucher->terms ), $link = '', $fill = 0, $align = 'C', $ln = true);
 
 		// close and output PDF document
-		$pdf->Output( $slug . '.pdf', 'I' );
+		$pdf->Output( $slug . '.pdf', 'D' );
 		
 	} else {
 	
@@ -1618,8 +1627,10 @@ function voucherpress_register_form( $voucher_guid ) {
 			// if the guid has been generated
 			if ( $guid ) {
 			
+				$message = __( "You have successfully registered to download a voucher, please download the voucher from here:", "voucherpress" ) . "\n\n" . voucherpress_link( $voucher_guid, $guid, false );
+			
 				// send the email
-				wp_mail( trim($_POST["voucher_email"]), "Voucher download for " . trim($_POST["voucher_name"]), __( "You have successfully registered to download a voucher, please download the voucher from here:", "voucherpress" ) + "\n\n" + voucherpress_link( $voucher_guid, $guid ) );
+				wp_mail( trim($_POST["voucher_email"]), "Voucher download for " . trim($_POST["voucher_name"]), $message );
 			
 				echo '
 				<p>' .  __( "Thank you for registering. You will shortly receive an email sent to '" . trim($_POST["voucher_email"]) . "' with a link to your personalised voucher.", "voucherpress" ) . '</p>
@@ -1699,6 +1710,7 @@ function voucherpress_code_is_valid( $voucher_guid, $code ) {
 	if ( $voucher_guid == "" && $code == "" ) {
 		return false;
 	} else {
+		global $wpdb;
 		$prefix = $wpdb->prefix;
 		if ( $wpdb->base_prefix != "") { $prefix = $wpdb->base_prefix; }
 		$blog_id = voucherpress_blog_id();
@@ -1710,15 +1722,19 @@ function voucherpress_code_is_valid( $voucher_guid, $code ) {
 				and v.blog_id = %d;", 
 				$code, $voucher_guid, $blog_id );
 		$row = $wpdb->get_row( $sql );
-		// if emails are not required
-		if ( $row->require_email == 0 || $row->require_email == "" )
+		// if the voucher has been found
+		if ( $row )
 		{
-			return true;
-		} else {
-			// if this email is registered and the voucher not yet downloaded
-			if ( $row->email != "" && $row->downloaded == "0" ) 
+			// if emails are not required
+			if ( $row->require_email != "1" )
 			{
 				return true;
+			} else {
+				// if this email is registered and the voucher not yet downloaded
+				if ( $row->email != "" && $row->downloaded == "0" ) 
+				{
+					return true;
+				}
 			}
 		}
 		return false;
