@@ -2,20 +2,20 @@
 /**
  * @package VoucherPress
  * @author Chris Taylor
- * @version 0.4
+ * @version 0.5
  */
 /*
 Plugin Name: VoucherPress
 Plugin URI: http://www.stillbreathing.co.uk/projects/voucherpress/
 Description: VoucherPress allows you to offer downloadable, printable vouchers from your Wordpress site. Vouchers can be available to anyone, or require a name and email address before they can be downloaded.
 Author: Chris Taylor
-Version: 0.4
+Version: 0.5
 Author URI: http://www.stillbreathing.co.uk/
 */
 
 // set the current version
 function voucherpress_current_version() {
-	return "0.4";
+	return "0.5";
 }
 
 // set activation hook
@@ -1332,7 +1332,7 @@ function voucherpress_get_all_vouchers( $num = 25, $start = 0 ) {
 	$prefix = $wpdb->prefix;
 	if ( $wpdb->base_prefix != "") { $prefix = $wpdb->base_prefix; }
 	$sql = "select b.domain, b.path, v.id, v.name, v.`text`, v.terms, v.require_email, v.`limit`, v.live, v.guid, 
-(select count(d.id) from wp_voucherpress_downloads d where d.voucherid = v.id) as downloads
+(select count(d.id) from " . $prefix . "voucherpress_downloads d where d.voucherid = v.id) as downloads
 from " . $prefix . "voucherpress_vouchers v
 inner join " . $wpdb->base_prefix . "blogs b on b.blog_id = v.blog_id
 where v.live = 1
@@ -1352,7 +1352,7 @@ function voucherpress_get_vouchers( $num = 25, $all=false ) {
 	$prefix = $wpdb->prefix;
 	if ( $wpdb->base_prefix != "") { $prefix = $wpdb->base_prefix; }
 	$sql = $wpdb->prepare( "select v.id, v.name, v.`text`, v.terms, v.require_email, v.`limit`, v.live, v.guid, 
-(select count(d.id) from wp_voucherpress_downloads d where d.voucherid = v.id) as downloads
+(select count(d.id) from " . $prefix . "voucherpress_downloads d where d.voucherid = v.id) as downloads
 from " . $prefix . "voucherpress_vouchers v
 where (%s = '1' or v.live = 1)
 and v.blog_id = %d
@@ -1411,9 +1411,8 @@ function voucherpress_get_voucher( $voucher, $live = 1, $code = "" ) {
 	// get by id
 	if ( is_numeric( $voucher ) ) {
 		$sql = $wpdb->prepare( "select v.id, v.name, v.`text`, v.terms, v.font, v.template, v.require_email, v.`limit`, v.guid, v.live, '' as registered_email, '' as registered_name,
-		count(d.id) as downloads
+		(select count(d.id) from " . $prefix . "voucherpress_downloads d where d.voucherid = v.id) as downloads
 		from " . $prefix . "voucherpress_vouchers v
-		left outer join " . $prefix . "voucherpress_downloads d on d.voucherid = v.id
 		where 
 		(%d = 0 or v.live = 1)
 		and v.id = %d
@@ -1425,9 +1424,8 @@ function voucherpress_get_voucher( $voucher, $live = 1, $code = "" ) {
 		if ( $code != "")
 		{
 			$sql = $wpdb->prepare( "select v.id, v.name, v.`text`, v.terms, v.font, v.template, v.require_email, v.`limit`, v.guid, v.live, r.email as registered_email, r.name as registered_name,
-			count(d.id) as downloads
+			(select count(d.id) from " . $prefix . "voucherpress_downloads d where d.voucherid = v.id) as downloads
 			from " . $prefix . "voucherpress_vouchers v
-			left outer join " . $prefix . "voucherpress_downloads d on d.voucherid = v.id
 			left outer join " . $prefix . "voucherpress_downloads r on r.voucherid = v.id and r.guid = %s
 			where 
 			v.live = 1
@@ -1436,9 +1434,8 @@ function voucherpress_get_voucher( $voucher, $live = 1, $code = "" ) {
 			$code, $voucher, $blog_id );
 		} else {
 			$sql = $wpdb->prepare( "select v.id, v.name, v.`text`, v.terms, v.font, v.template, v.require_email, v.`limit`, v.guid, v.live, '' as registered_email, '' as registered_name,
-			count(d.id) as downloads
+			(select count(d.id) from " . $prefix . "voucherpress_downloads d where d.voucherid = v.id) as downloads
 			from " . $prefix . "voucherpress_vouchers v
-			left outer join " . $prefix . "voucherpress_downloads d on d.voucherid = v.id
 			where 
 			(%d = 0 or v.live = 1)
 			and v.guid = %s
