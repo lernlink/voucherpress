@@ -2,20 +2,20 @@
 /**
  * @package VoucherPress
  * @author Chris Taylor
- * @version 0.5.1
+ * @version 0.5.2
  */
 /*
 Plugin Name: VoucherPress
 Plugin URI: http://www.stillbreathing.co.uk/projects/voucherpress/
 Description: VoucherPress allows you to offer downloadable, printable vouchers from your Wordpress site. Vouchers can be available to anyone, or require a name and email address before they can be downloaded.
 Author: Chris Taylor
-Version: 0.5.1
+Version: 0.5.2
 Author URI: http://www.stillbreathing.co.uk/
 */
 
 // set the current version
 function voucherpress_current_version() {
-	return "0.5";
+	return "0.5.2";
 }
 
 // set activation hook
@@ -60,16 +60,32 @@ function voucherpress_template() {
 		$voucher_guid = $_GET["voucher"];
 		$code = @$_GET["code"];
 
-		// if the email addres supplied is valid
-		if ( voucherpress_code_is_valid( $voucher_guid, $code ) ) {
-			// download the voucher
-			voucherpress_download_voucher( $voucher_guid, $code );
-		} else {
-			// show the form
-			voucherpress_register_form( $voucher_guid );
+		// check the template exists
+		if ( voucherpress_voucher_exists( $voucher_guid ) ) {
+			// if the email addres supplied is valid
+			if ( voucherpress_code_is_valid( $voucher_guid, $code ) ) {
+				// download the voucher
+				voucherpress_download_voucher( $voucher_guid, $code );
+			} else {
+				// show the form
+				voucherpress_register_form( $voucher_guid );
+			}
+			exit();
 		}
-		exit();
+		voucherpress_404();
 	}
+}
+
+// show a 404 page
+function voucherpress_404() {
+	global $wp_query;
+	$wp_query->set_404();
+	if ( file_exists( TEMPLATEPATH.'/404.php' ) ) {
+		require TEMPLATEPATH.'/404.php';
+	} else {
+		wp_die( __( "Sorry, that item was not found", "voucherpress" ) );
+	}
+	exit();
 }
 
 // ==========================================================================================
@@ -459,7 +475,7 @@ function voucherpress_create_voucher_page()
 	<p><label for="requireemail">' . __( "Require email address", "voucherpress" ) . '</label>
 	<input type="checkbox" name="requireemail" id="requireemail" value="1" /> <span>' . __( "Tick this box to require a valid email address to be given before this voucher can be downloaded", "voucherpress" ) . '</span></p>
 	<p><label for="limit">' . __( "Number of vouchers available", "voucherpress" ) . '</label>
-	<input type="text" name="limit" id="limit" class="num" value="" /> <span>' . __( "Set the number of times this voucher can be downloaded (leave blank for unlimited)", "voucherpress" ) . '</span></p>
+	<input type="text" name="limit" id="limit" class="num" value="" /> <span>' . __( "Set the number of times this voucher can be downloaded (leave blank or 0 for unlimited)", "voucherpress" ) . '</span></p>
 	<p><input type="button" name="preview" id="previewbutton" class="button" value="' . __( "Preview", "voucherpress" ) . '" />
 	<input type="submit" name="save" id="savebutton" class="button-primary" value="' . __( "Save", "voucherpress" ) . '" />
 	<input type="hidden" name="template" id="template" value="1" /></p>
@@ -480,6 +496,8 @@ function voucherpress_edit_voucher_page()
 		<h2>' . __( "Edit voucher:", "voucherpress" ) . ' ' . htmlspecialchars( stripslashes( $voucher->name ) ) . '</h2>
 		
 		<h3>' . __( "Shortcode for this voucher:", "voucherpress" ) . ' <input type="text" value="[voucher id=&quot;' . $voucher->id . '&quot;]" /> = <a href="' . voucherpress_link( $voucher->guid ) . '">' . htmlspecialchars( stripslashes( $voucher->name ) ) . '</a></h3>
+		
+		<h3>' . __( "Link for this voucher:", "voucherpress" ) . ' <input type="text" value="' . voucherpress_link( $voucher->guid ) . '" /></h3>
 		';
 		
 		if ( $voucher->downloads > 0 ) {
@@ -523,7 +541,7 @@ function voucherpress_edit_voucher_page()
 		
 			<h2><textarea name="name" id="name" rows="2" cols="100">' . stripslashes( $voucher->name ) . '</textarea></h2>
 			<p><textarea name="text" id="text" rows="3" cols="100">' . stripslashes( $voucher->text ) . '</textarea></p>
-			<p>[' . __( "Unique voucher code here", "voucherpress" ) . ']</p>
+			<p>[' . __( "The unique voucher code will be inserted automatically here", "voucherpress" ) . ']</p>
 			<p id="voucherterms"><textarea name="terms" id="terms" rows="4" cols="100">' . stripslashes( $voucher->terms ) . '</textarea></p>
 		
 		</div>
@@ -1453,6 +1471,26 @@ function voucherpress_get_voucher( $voucher, $live = 1, $code = "" ) {
 	}
 }
 
+// check a voucher exists and can be downloaded
+function voucherpress_voucher_exists( $guid ) {
+	$blog_id = voucherpress_blog_id();
+	global $wpdb;
+	$prefix = $wpdb->prefix;
+	if ( $wpdb->base_prefix != "") { $prefix = $wpdb->base_prefix; }
+	$sql = $wpdb->prepare( "select v.id, v.`limit`,
+	(select count(d.id) from " . $prefix . "voucherpress_downloads d where d.voucherid = v.id) as downloads
+	from " . $prefix . "voucherpress_vouchers v
+	where 
+	v.guid = %s
+	and v.blog_id = %d", 
+	$guid, $blog_id );
+	$row = $wpdb->get_row( $sql );
+	if ( $row && ( (int)$row->limit == 0 || (int)$row->limit > (int)$row->downloads ) ) {
+		return true;
+	}
+	return false;
+}
+
 // download a voucher
 function voucherpress_download_voucher( $voucher_guid, $code = "" ) {
 	$voucher = voucherpress_get_voucher( $voucher_guid, 1, $code );
@@ -1475,10 +1513,7 @@ function voucherpress_download_voucher( $voucher_guid, $code = "" ) {
 			// render the voucher
 			voucherpress_render_voucher( $voucher, $code );
 		} else {
-			global $wp_query;
-			$wp_query->set_404();
-		    require TEMPLATEPATH.'/404.php';
-		    exit();
+			voucherpress_404();
 		}
 	} else {
 		global $wp_query;
