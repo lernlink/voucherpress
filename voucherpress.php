@@ -2,24 +2,25 @@
 /**
  * @package VoucherPress
  * @author Chris Taylor
- * @version 0.5.2
+ * @version 0.5.3
  */
 /*
 Plugin Name: VoucherPress
 Plugin URI: http://www.stillbreathing.co.uk/projects/voucherpress/
 Description: VoucherPress allows you to offer downloadable, printable vouchers from your Wordpress site. Vouchers can be available to anyone, or require a name and email address before they can be downloaded.
 Author: Chris Taylor
-Version: 0.5.2
+Version: 0.5.3
 Author URI: http://www.stillbreathing.co.uk/
 */
 
 // set the current version
 function voucherpress_current_version() {
-	return "0.5.2";
+	return "0.5.3";
 }
 
 // set activation hook
 register_activation_hook( __FILE__, voucherpress_activate );
+register_deactivation_hook( __FILE__, voucherpress_deactivate );
 
 // initialise the plugin
 voucherpress_init();
@@ -115,17 +116,25 @@ function voucherpress_activate() {
 			"thanks_message" => "Thank you, a link has been sent to your email address for you to download this voucher.",
 			"voucher_not_found_message" => "Sorry, the voucher you are looking for cannot be found."
 			);
+		// add options
 		add_option ( "voucherpress_data", maybe_serialize( $data ) );
 		add_option ( "voucherpress_version", voucherpress_current_version() );
 	}
 }
 
+// deactivate the plugin
+function voucherpress_deactivate() {
+	// delete options
+	delete_option( "voucherpress_data" );
+	delete_option( "voucherpress_version" );
+}
+
 // get the currently installed version
 function voucherpress_get_version() {
 	if ( function_exists( "get_site_option" ) ) {
-		return get_site_option( "voucherpress_installed_version" );
+		return get_site_option( "voucherpress_version" );
 	} else {
-		return get_option( "voucherpress_installed_version" );
+		return get_option( "voucherpress_version" );
 	}
 }
 
@@ -133,9 +142,9 @@ function voucherpress_get_version() {
 function voucherpress_update_version() {
 	$version = voucherpress_current_version();
 	if ( function_exists( "get_site_option" ) ) {
-		update_site_option( "voucherpress_installed_version", $version );
+		update_site_option( "voucherpress_version", $version );
 	} else {
-		return update_option( "voucherpress_installed_version", $version );
+		return update_option( "voucherpress_version", $version );
 	}
 }
 
