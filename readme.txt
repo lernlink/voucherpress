@@ -4,7 +4,7 @@ Donate link: http://www.stillbreathing.co.uk/donate/
 Tags: voucher, vouchers, pdf, print, download, offer, code, special, coupon, ticket, token, 
 Requires at least: 2.8
 Tested up to: 2.9.2
-Stable tag: 0.5.3
+Stable tag: 0.6
 
 VoucherPress is a Wordpress plugin that allows you to give downloadable, printable vouchers/ticket/coupons/tokens in PDF format away on your site.
 
@@ -24,11 +24,15 @@ The plugin should be placed in your /wp-content/plugins/ directory and activated
 
 == Shortcodes ==
 
-There are two shortcodes available. The first shows a link to a particular voucher, and is in the format:
+There are three shortcodes available. The first shows a link to a particular voucher, and is in the format:
 
 [voucher id="123"]
 
 The "id" parameter is the unique ID of the voucher. The correct ID to use is available in the screen where you edit the voucher.
+
+The second shows a link to a voucher, but with a preview of the voucher (just the background image, no text) and the voucher name as the image alternate text:
+
+[voucher id="123" preview="true"]
 
 You can also show an unordered list of all your live vouchers using this shortcode:
 
@@ -54,6 +58,7 @@ Not at the moment, but I'm sure it could if those e-commerce plugin developers w
 
 == Changelog ==
 
+0.6 (2010/03/09) Added shortcode with preview of voucher
 0.5.3 (2010/03/01) Fixed bug with upgrades not creating tables
 0.5.2 (2010/02/25) Fixed bug when no 404.php page found in template. Added link to voucher to voucher edit page. Clarified some sections of the voucher edit page.
 0.5.1 (2010/02/17) Added a support link and donate button

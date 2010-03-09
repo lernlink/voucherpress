@@ -2,20 +2,20 @@
 /**
  * @package VoucherPress
  * @author Chris Taylor
- * @version 0.5.3
+ * @version 0.6
  */
 /*
 Plugin Name: VoucherPress
 Plugin URI: http://www.stillbreathing.co.uk/projects/voucherpress/
 Description: VoucherPress allows you to offer downloadable, printable vouchers from your Wordpress site. Vouchers can be available to anyone, or require a name and email address before they can be downloaded.
 Author: Chris Taylor
-Version: 0.5.3
+Version: 0.6
 Author URI: http://www.stillbreathing.co.uk/
 */
 
 // set the current version
 function voucherpress_current_version() {
-	return "0.5.3";
+	return "0.6";
 }
 
 // set activation hook
@@ -505,6 +505,8 @@ function voucherpress_edit_voucher_page()
 		<h2>' . __( "Edit voucher:", "voucherpress" ) . ' ' . htmlspecialchars( stripslashes( $voucher->name ) ) . '</h2>
 		
 		<h3>' . __( "Shortcode for this voucher:", "voucherpress" ) . ' <input type="text" value="[voucher id=&quot;' . $voucher->id . '&quot;]" /> = <a href="' . voucherpress_link( $voucher->guid ) . '">' . htmlspecialchars( stripslashes( $voucher->name ) ) . '</a></h3>
+		
+		<h3>' . __( "Shortcode for this voucher:", "voucherpress" ) . ' <input type="text" value="[voucher id=&quot;' . $voucher->id . '&quot; preview=&quot;true&quot;]" /> = <a href="' . voucherpress_link( $voucher->guid ) . '"><img src="' . get_option( "siteurl" ) . '/wp-content/plugins/voucherpress/templates/' . $voucher->template . '_thumb.jpg" alt="' . htmlspecialchars( stripslashes( $voucher->name ) ) . '" /></a></h3>
 		
 		<h3>' . __( "Link for this voucher:", "voucherpress" ) . ' <input type="text" value="' . voucherpress_link( $voucher->guid ) . '" /></h3>
 		';
@@ -1074,15 +1076,24 @@ function voucherpress_slug( $string ) {
 function voucher_do_voucher_shortcode( $atts ) {
 
 	extract( shortcode_atts( array( 
-		'id' => ''
+		'id' => '',
+		'preview' => ''
 	), $atts ) );
 
 	if ( $id != "" ) {
 	
 		$voucher = voucherpress_get_voucher( $id );
-		if ($voucher ) {
+		if ( $voucher ) {
+		
+			if ( $preview == 'true' ) {
 			
-			return '<a href="' . voucherpress_link( $voucher->guid ) . '">' . htmlspecialchars( $voucher->name ) . '</a>';
+				return '<a href="' . voucherpress_link( $voucher->guid ) . '"><img src="' . get_option( "siteurl" ) . '/wp-content/plugins/voucherpress/templates/' . $voucher->template . '_thumb.jpg" alt="' . htmlspecialchars( $voucher->name ) . '" /></a>';
+			
+			} else {
+			
+				return '<a href="' . voucherpress_link( $voucher->guid ) . '">' . htmlspecialchars( $voucher->name ) . '</a>';
+			
+			}
 			
 		}
 	
