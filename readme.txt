@@ -4,9 +4,9 @@ Donate link: http://www.stillbreathing.co.uk/donate/
 Tags: voucher, vouchers, pdf, print, download, offer, code, special, coupon, ticket, token, 
 Requires at least: 2.8
 Tested up to: 2.9.2
-Stable tag: 0.6
+Stable tag: 0.7
 
-VoucherPress is a Wordpress plugin that allows you to give downloadable, printable vouchers/ticket/coupons/tokens in PDF format away on your site.
+VoucherPress is a Wordpress plugin that allows you to give downloadable, printable vouchers/tickets/coupons/tokens in PDF format away on your site.
 
 == Description ==
 
@@ -16,11 +16,13 @@ There are shortcodes to add a link to a particular voucher, or to show an unorde
 
 You can require visitors to provide their name and email address to get a voucher. If an email address is required an email is sent to the address with a link to the voucher URL. Each voucher has a unique code, and vouchers that have an email address associated with them can only be used once, so once a registration-required voucher is downloaded it can't be downloaded again.
 
+You can also restrict the downloading of vouchers in two other ways. Firstly you can set the number of downloads that are allowed, for example set a limit of 100 downloads so only 100 people can get the voucher. Secondly you can set an expiry date for a voucher, on that date the voucher will become automatically expired.
+
 The plugin also makes use of the __() function to allow for easy translation.
 
 == Installation ==
 
-The plugin should be placed in your /wp-content/plugins/ directory and activated in the plugin administration screen. The plugin is quite large (over 20mb) as it includes the TCPDF class for creating the PDF file.
+The plugin should be placed in your /wp-content/plugins/ directory and activated in the plugin administration screen. The plugin is quite large as it includes the TCPDF class for creating the PDF file.
 
 == Shortcodes ==
 
@@ -48,6 +50,10 @@ I'm not sure. it seemed like a good idea, and gave me opportunity to learn a lit
 
 Not at the moment, but I'm sure it could if those e-commerce plugin developers want to get in touch.
 
+= Can I add my own codes, for example if I want to give away numbered coupons? =
+
+Not at the moment, but I'm thinking about how to make that possible.
+
 == Screenshots ==
 
 1. Creating or editing a voucher
@@ -58,6 +64,7 @@ Not at the moment, but I'm sure it could if those e-commerce plugin developers w
 
 == Changelog ==
 
+0.7 (2010/03/12) Made activation more robust. Fixed bug with non-writeable templates directory. Added expiry date.
 0.6 (2010/03/09) Added shortcode with preview of voucher
 0.5.3 (2010/03/01) Fixed bug with upgrades not creating tables
 0.5.2 (2010/02/25) Fixed bug when no 404.php page found in template. Added link to voucher to voucher edit page. Clarified some sections of the voucher edit page.
