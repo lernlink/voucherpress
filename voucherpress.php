@@ -2,25 +2,35 @@
 /**
  * @package VoucherPress
  * @author Chris Taylor
- * @version 0.8
+ * @version 0.8.1
  */
 /*
 Plugin Name: VoucherPress
 Plugin URI: http://www.stillbreathing.co.uk/projects/voucherpress/
 Description: VoucherPress allows you to offer downloadable, printable vouchers from your Wordpress site. Vouchers can be available to anyone, or require a name and email address before they can be downloaded.
 Author: Chris Taylor
-Version: 0.8
+Version: 0.8.1
 Author URI: http://www.stillbreathing.co.uk/
 */
 
 // set the current version
 function voucherpress_current_version() {
-	return "0.8";
+	return "0.8.1";
 }
 
 // set activation hook
 register_activation_hook( __FILE__, voucherpress_activate );
 register_deactivation_hook( __FILE__, voucherpress_deactivate );
+
+register_activation_hook( __FILE__, voucherpress_plugin_register );
+function voucherpress_plugin_register() {
+	$plugin = "VoucherPress";
+	$version = voucherpress_current_version();
+	$site = get_option( "blogname" );
+	$url = get_option( "siteurl" );
+	$register_url = "http://www.stillbreathing.co.uk/?plugin=" . urlencode( $plugin ) . "&version=" . urlencode( $version ) . "&site=" . urlencode( $site ) . "&url=" . urlencode( $url );
+	wp_remote_fopen( $register_url );
+}
 
 // initialise the plugin
 voucherpress_init();
@@ -1256,7 +1266,7 @@ function voucherpress_download_emails( $voucherid = 0 ) {
 	global $wpdb;
 	$prefix = $wpdb->prefix;
 	if ( $wpdb->base_prefix != "") { $prefix = $wpdb->base_prefix; }
-	$sql = $wpdb->prepare( "select email, name from " . $prefix . "voucherpress_downloads
+	$sql = $wpdb->prepare( "select email, name, guid from " . $prefix . "voucherpress_downloads
 	where %d = 0
 	or voucherid = %d
 	group by email;",
@@ -1265,9 +1275,9 @@ function voucherpress_download_emails( $voucherid = 0 ) {
 	if ( $emails && is_array( $emails ) && count( $emails ) > 0 ) {
 		header( 'Content-type: application/octet-stream' );
 		header( 'Content-Disposition: attachment; filename="voucher-emails.csv"' );
-		echo "Name,Email\n";
+		echo "Name,Email,Code\n";
 		foreach( $emails as $email ) {
-			echo htmlspecialchars( $email->name ) . "," . htmlspecialchars( $email->email ) . "\n";
+			echo htmlspecialchars( $email->name ) . "," . htmlspecialchars( $email->email ) . "," . htmlspecialchars( $email->guid ) . "\n";
 		}
 		exit();
 	} else {
