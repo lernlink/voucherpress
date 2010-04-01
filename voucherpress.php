@@ -53,8 +53,10 @@ function voucherpress_init() {
 		// add the admin email download function
 		add_action( "admin_menu", "voucherpress_check_download" );
 		// add the admin head includes
-		add_action( "admin_head", "voucherpress_admin_css" );
-		add_action( "admin_head", "voucherpress_admin_js" );
+		if ( substr( @$_GET["page"], 0, 8 ) == "vouchers" ) {
+			add_action( "admin_head", "voucherpress_admin_css" );
+			add_action( "admin_head", "voucherpress_admin_js" );
+		}
 		// setup shortcodes
 		// [voucher id="" name="" slug=""]
 		add_shortcode( 'voucher', 'voucher_do_voucher_shortcode' );
