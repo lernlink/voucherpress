@@ -2,20 +2,20 @@
 /**
  * @package VoucherPress
  * @author Chris Taylor
- * @version 0.8.1
+ * @version 0.8.2
  */
 /*
 Plugin Name: VoucherPress
 Plugin URI: http://www.stillbreathing.co.uk/projects/voucherpress/
 Description: VoucherPress allows you to offer downloadable, printable vouchers from your Wordpress site. Vouchers can be available to anyone, or require a name and email address before they can be downloaded. Please note: On activation this plugin will send a message to the developer with your site name and URL. This information will be kept private. If you are not happy with the developer knowing you are using their plugin, please do not use it.
 Author: Chris Taylor
-Version: 0.8.1
+Version: 0.8.2
 Author URI: http://www.stillbreathing.co.uk/
 */
 
 // set the current version
 function voucherpress_current_version() {
-	return "0.8.1";
+	return "0.8.2";
 }
 
 // set activation hook
@@ -227,7 +227,13 @@ function voucherpress_check_install() {
 		voucherpress_insert_templates();
 	}
 	// chmod the templates directory
-	chmod( ABSPATH . "/wp-content/plugins/voucherpress/templates/", 0767 );
+	if ( !@chmod( ABSPATH . "/wp-content/plugins/voucherpress/templates/", 0767 ) ) {
+		echo '
+		<div id="message" class="warning">
+			<p><strong>' . __( "The system was not able to set the right permissions on the folder where your custom templates are stored. You may not be able to upload your own templates. Please contact your system administrator for more information.", "voucherpress" ) . '</strong></p>
+		</div>
+		';
+	}
 }
 
 // get the currently installed version
