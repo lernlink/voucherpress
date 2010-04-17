@@ -2,34 +2,41 @@
 /**
  * @package VoucherPress
  * @author Chris Taylor
- * @version 0.8.2
+ * @version 0.8.3
  */
 /*
 Plugin Name: VoucherPress
 Plugin URI: http://www.stillbreathing.co.uk/projects/voucherpress/
-Description: VoucherPress allows you to offer downloadable, printable vouchers from your Wordpress site. Vouchers can be available to anyone, or require a name and email address before they can be downloaded. Please note: On activation this plugin will send a message to the developer with your site name and URL. This information will be kept private. If you are not happy with the developer knowing you are using their plugin, please do not use it.
+Description: VoucherPress allows you to offer downloadable, printable vouchers from your Wordpress site. Vouchers can be available to anyone, or require a name and email address before they can be downloaded. <strong>Please <a href="plugins.php?register=voucherpress">register this plugin</a> to tell the developer you are using it. This just sends your site name and URL to the developer.</strong>
 Author: Chris Taylor
-Version: 0.8.2
+Version: 0.8.3
 Author URI: http://www.stillbreathing.co.uk/
 */
 
 // set the current version
 function voucherpress_current_version() {
-	return "0.8.2";
+	return "0.8.3";
 }
 
 // set activation hook
 register_activation_hook( __FILE__, voucherpress_activate );
 register_deactivation_hook( __FILE__, voucherpress_deactivate );
 
-register_activation_hook( __FILE__, voucherpress_plugin_register );
-function voucherpress_plugin_register() {
+if ( isset($_GET["register"]) && $_GET["register"] == "voucherpress" ) {
 	$plugin = "VoucherPress";
 	$version = voucherpress_current_version();
 	$site = get_option( "blogname" );
 	$url = get_option( "siteurl" );
 	$register_url = "http://www.stillbreathing.co.uk/?plugin=" . urlencode( $plugin ) . "&version=" . urlencode( $version ) . "&site=" . urlencode( $site ) . "&url=" . urlencode( $url );
 	wp_remote_fopen( $register_url );
+	add_action( "admin_notices", "voucherpress_register_thanks" );
+}
+function voucherpress_register_thanks() {
+	echo '
+	<div id="message" class="updated fade">
+		<p><strong>' . __( 'Thank you for registering your use of this plugin.', "voucherpress" ) . '</strong></p>
+	</div>
+	';
 }
 
 // initialise the plugin
@@ -76,7 +83,7 @@ function voucherpress_template() {
 		// check the template exists
 		if ( voucherpress_voucher_exists( $voucher_guid ) ) {
 			// if the email addres supplied is valid
-			if ( voucherpress_code_is_valid( $voucher_guid, $code ) ) {
+			if ( voucherpress_code_is_valid( $voucher_guid, $code ) != "unregistered" ) {
 				// download the voucher
 				voucherpress_download_voucher( $voucher_guid, $code );
 			} else {
@@ -121,6 +128,18 @@ function voucherpress_runout() {
 	//	require TEMPLATEPATH.'/404.php';
 	//} else {
 		wp_die( __( "Sorry, that item has run out", "voucherpress" ) );
+	//}
+	exit();
+}
+
+// show a downloaded voucher page
+function voucherpress_downloaded() {
+	global $wp_query;
+	$wp_query->set_404();
+	//if ( file_exists( TEMPLATEPATH.'/404.php' ) ) {
+	//	require TEMPLATEPATH.'/404.php';
+	//} else {
+		wp_die( __( "You have already downloaded this voucher", "voucherpress" ) );
 	//}
 	exit();
 }
@@ -170,48 +189,51 @@ function voucherpress_insert_templates() {
 	global $wpdb;
 	$prefix = $wpdb->prefix;
 	if ( $wpdb->base_prefix != "" ) { $prefix = $wpdb->base_prefix; }
-	$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Plain black border', 1, 0);");
-	$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Mint chocolate', 1, 0);");
-	$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Red floral border', 1, 0);");
-	$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Single red rose (top left)', 1, 0);");
-	$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Red flowers', 1, 0);");
-	$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Pink flowers', 1, 0);");
-	$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Abstract green bubbles', 1, 0);");
-	$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('International post', 1, 0);");
-	$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Gold ribbon', 1, 0);");
-	$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Monochrome bubble border', 1, 0);");
-	$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Colourful swirls', 1, 0);");
-	$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Red gift bag', 1, 0);");
-	$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Blue ribbon', 1, 0);");
-	$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Autumn floral border', 1, 0);");
-	$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Yellow gift boxes', 1, 0);");
-	$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Wrought iron border', 1, 0);");
-	$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Abstract rainbow flowers', 1, 0);");
-	$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Christmas holly border', 1, 0);");
-	$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Small gold ribbon', 1, 0);");
-	$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Small red ribbon', 1, 0);");
-	$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('White gift boxes', 1, 0);");
-	$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Glass flowers border', 1, 0);");
-	$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Single red rose (bottom centre)', 1, 0);");
-	$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Fern border', 1, 0);");
-	$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Blue floral watermark', 1, 0);");
-	$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Monochrome ivy border', 1, 0);");
-	$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Ornate border', 1, 0);");
-	$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Winter flower corners', 1, 0);");
-	$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Spring flower corners', 1, 0);");
-	$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Pattern border', 1, 0);");
-	$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Orange flower with bar', 1, 0);");
-	$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Small coat of arms', 1, 0);");
-	$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Grunge border', 1, 0);");
-	$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Coffee beans', 1, 0);");
-	$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Blue gift boxes', 1, 0);");
-	$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Spring flowers border', 1, 0);");
-	$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Ornate magenta border', 1, 0);");
-	$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Mexico border', 1, 0);");
-	$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Chalk border', 1, 0);");
-	$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Thick border', 1, 0);");
-	$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Dark chalk border', 1, 0);");
-	$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Ink border', 1, 0);");
+	$templates = $wpdb->get_var( "select count(name) from " . $prefix . "voucherpress_templates;" );
+	if ($templates == 0) {
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Plain black border', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Mint chocolate', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Red floral border', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Single red rose (top left)', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Red flowers', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Pink flowers', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Abstract green bubbles', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('International post', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Gold ribbon', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Monochrome bubble border', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Colourful swirls', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Red gift bag', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Blue ribbon', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Autumn floral border', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Yellow gift boxes', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Wrought iron border', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Abstract rainbow flowers', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Christmas holly border', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Small gold ribbon', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Small red ribbon', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('White gift boxes', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Glass flowers border', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Single red rose (bottom centre)', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Fern border', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Blue floral watermark', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Monochrome ivy border', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Ornate border', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Winter flower corners', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Spring flower corners', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Pattern border', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Orange flower with bar', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Small coat of arms', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Grunge border', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Coffee beans', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Blue gift boxes', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Spring flowers border', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Ornate magenta border', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Mexico border', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Chalk border', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Thick border', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Dark chalk border', 1, 0);");
+		$wpdb->query("insert into " . $prefix . "voucherpress_templates (name, live, blog_id) values ('Ink border', 1, 0);");
+	}
 }
 
 // check voucherpress is installed correctly
@@ -543,9 +565,9 @@ function voucherpress_create_voucher_page()
 	<p><label for="limit">' . __( "Number of vouchers available", "voucherpress" ) . '</label>
 	<input type="text" name="limit" id="limit" class="num" value="" /> <span>' . __( "Set the number of times this voucher can be downloaded (leave blank or 0 for unlimited)", "voucherpress" ) . '</span></p>
 	<p><label for="expiryyear">' . __( "Date voucher expires", "voucherpress" ) . '</label>
-	' . __( "Year:", "voucherpress" ) . ' <input type="text" name="expiryyear" id="expiryyear" class="num" value="' . date( "Y", time() ) . '" />
-	' . __( "Month:", "voucherpress" ) . ' <input type="text" name="expirymonth" id="expirymonth" class="num" value="' . date( "n", time() ) . '" />
-	' . __( "Day:", "voucherpress" ) . ' <input type="text" name="expiryday" id="expiryday" class="num" value="' . date( "j", time() ) . '" /> 
+	' . __( "Year:", "voucherpress" ) . ' <input type="text" name="expiryyear" id="expiryyear" class="num" value="" />
+	' . __( "Month:", "voucherpress" ) . ' <input type="text" name="expirymonth" id="expirymonth" class="num" value="" />
+	' . __( "Day:", "voucherpress" ) . ' <input type="text" name="expiryday" id="expiryday" class="num" value="" /> 
 	<span>' . __( "Enter the date on which this voucher will expire (leave blank for never)", "voucherpress" ) . '</span></p>
 	<p><input type="button" name="preview" id="previewbutton" class="button" value="' . __( "Preview", "voucherpress" ) . '" />
 	<input type="submit" name="save" id="savebutton" class="button-primary" value="' . __( "Save", "voucherpress" ) . '" />
@@ -1639,6 +1661,11 @@ function voucherpress_download_voucher( $voucher_guid, $code = "" ) {
 			// this voucher has run out
 			voucherpress_runout();
 			
+		} else if ( $valid === "downloaded" )  {
+		
+			// this voucher has been downloaded already
+			voucherpress_downloaded();
+			
 		} else if ( $valid === "expired" )  {
 		
 			// this voucher has expired
@@ -1879,7 +1906,7 @@ function voucherpress_code_is_valid( $voucher_guid, $code ) {
 		if ( $wpdb->base_prefix != "") { $prefix = $wpdb->base_prefix; }
 		$blog_id = voucherpress_blog_id();
 		global $wpdb;
-		$sql = $wpdb->prepare( "select v.require_email, ifnull( d.email, '' ) as email, ifnull( d.downloaded, 0 ) as downloaded, v.`limit`, v.expiry from
+		$sql = $wpdb->prepare( "select v.id, v.require_email, ifnull( d.email, '' ) as email, ifnull( d.downloaded, 0 ) as downloaded, v.`limit`, v.expiry from
 				" . $prefix . "voucherpress_vouchers v
 				left outer join " . $prefix . "voucherpress_downloads d on d.voucherid = v.id and d.guid = %s
 				where v.guid = %s
@@ -1889,35 +1916,35 @@ function voucherpress_code_is_valid( $voucher_guid, $code ) {
 		// if the voucher has been found
 		if ( $row )
 		{
-			// if there is a limit and the limit has been reached
-			if ( (int)$row->limit != 0 && (int)$row->limit > (int)$row->downloads )
-			{
-			
-				return "runout";
+
+			// a limit has been set
+			if ( (int)$row->limit != 0 ) {
+				$sql = $wpdb->prepare( "select count(id) from " . $prefix . "voucherpress_downloads where voucherid = %d", $row->id );
+				$downloads = $wpdb->get_var( $sql );
+				// if the limit has been reached
+				if ( (int)$downloads >= (int)$row->limit )	{
+					return "runout";
+				}
+			}
 			
 			// if there is an expiry and the expiry is in the past
-			} else if ( (int)$row->expiry != 0 && (int)$row->expiry < time() ) {
-			
+			if ( (int)$row->expiry != 0 && (int)$row->expiry < time() ) {
 				return "expired";
+			}
 			
+			// if emails are not required
+			if ( $row->require_email != "1" ) {
+				return "valid";
 			} else {
-			
-				// if emails are not required
-				if ( $row->require_email != "1" )
-				{
-				
-					return "valid";
-					
-				} else {
-				
-					// if this email is registered and the voucher not yet downloaded
-					if ( $row->email != "" && $row->downloaded == "0" ) 
-					{
-						return "valid";
-					}
-					
+				// if the voucher has been downloaded
+				if ( $code != "" && $row->email != "" && $row->downloaded != "0" ) {
+					return "downloaded";
 				}
-				
+				// if the voucher has not been downloaded
+				if ( $code != "" && $row->email != "" && $row->downloaded == "0" ) {
+					return "valid";
+				}
+				return "unregistered";
 			}
 		}
 		return "unavailable";
