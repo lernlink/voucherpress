@@ -10,8 +10,6 @@ VoucherPress is a Wordpress plugin that allows you to give downloadable, printab
 
 == Description ==
 
-Please note: On activation this plugin will send a message to the developer with your site name and URL. This information will be kept private. If you are not happy with the developer knowing you are using their plugin, please do not use it.
-
 Have you ever wanted to give away vouchers, tickets, coupons or tokens on your website? If so this plugin is for you. You can create a voucher with whatever text you want, choosing the layout and font from a range of templates (you can also add your own templates). Vouchers can then be viewed, downloaded and printed from a specified URL.
 
 There are shortcodes to add a link to a particular voucher, or to show an unordered list of all your vouchers.
