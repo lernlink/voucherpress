@@ -2,42 +2,25 @@
 /**
  * @package VoucherPress
  * @author Chris Taylor
- * @version 0.8.3
+ * @version 0.8.4
  */
 /*
 Plugin Name: VoucherPress
 Plugin URI: http://www.stillbreathing.co.uk/projects/voucherpress/
-Description: VoucherPress allows you to offer downloadable, printable vouchers from your Wordpress site. Vouchers can be available to anyone, or require a name and email address before they can be downloaded. <strong>Please <a href="plugins.php?register=voucherpress">register this plugin</a> to tell the developer you are using it. This just sends your site name and URL to the developer.</strong>
+Description: VoucherPress allows you to offer downloadable, printable vouchers from your Wordpress site. Vouchers can be available to anyone, or require a name and email address before they can be downloaded.
 Author: Chris Taylor
-Version: 0.8.3
+Version: 0.8.4
 Author URI: http://www.stillbreathing.co.uk/
 */
 
 // set the current version
 function voucherpress_current_version() {
-	return "0.8.3";
+	return "0.8.4";
 }
 
 // set activation hook
 register_activation_hook( __FILE__, voucherpress_activate );
 register_deactivation_hook( __FILE__, voucherpress_deactivate );
-
-if ( isset($_GET["register"]) && $_GET["register"] == "voucherpress" ) {
-	$plugin = "VoucherPress";
-	$version = voucherpress_current_version();
-	$site = get_option( "blogname" );
-	$url = get_option( "siteurl" );
-	$register_url = "http://www.stillbreathing.co.uk/?plugin=" . urlencode( $plugin ) . "&version=" . urlencode( $version ) . "&site=" . urlencode( $site ) . "&url=" . urlencode( $url );
-	wp_remote_fopen( $register_url );
-	add_action( "admin_notices", "voucherpress_register_thanks" );
-}
-function voucherpress_register_thanks() {
-	echo '
-	<div id="message" class="updated fade">
-		<p><strong>' . __( 'Thank you for registering your use of this plugin.', "voucherpress" ) . '</strong></p>
-	</div>
-	';
-}
 
 // initialise the plugin
 voucherpress_init();
@@ -2063,4 +2046,14 @@ function voucherpress_wp_plugin_standard_footer( $currency = "", $plugin_name = 
 	}
 	print $r;
 }
+
+require_once( "plugin-register.class.php" );
+$register = new Plugin_Register();
+$register->file = __FILE__;
+$register->slug = "voucherpress";
+$register->name = "VoucherPress";
+$register->version =voucherpress_current_version();
+$register->developer = "Chris Taylor";
+$register->homepage = "http://www.stillbreathing.co.uk";
+$register->Plugin_Register();
 ?>
