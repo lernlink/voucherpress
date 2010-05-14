@@ -2,20 +2,20 @@
 /**
  * @package VoucherPress
  * @author Chris Taylor
- * @version 0.8.4
+ * @version 0.8.5
  */
 /*
 Plugin Name: VoucherPress
-Plugin URI: http://www.stillbreathing.co.uk/projects/voucherpress/
+Plugin URI: http://www.stillbreathing.co.uk/wordpress/voucherpress/
 Description: VoucherPress allows you to offer downloadable, printable vouchers from your Wordpress site. Vouchers can be available to anyone, or require a name and email address before they can be downloaded.
 Author: Chris Taylor
-Version: 0.8.4
+Version: 0.8.5
 Author URI: http://www.stillbreathing.co.uk/
 */
 
 // set the current version
 function voucherpress_current_version() {
-	return "0.8.4";
+	return "0.8.5";
 }
 
 // set activation hook
