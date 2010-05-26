@@ -2,20 +2,20 @@
 /**
  * @package VoucherPress
  * @author Chris Taylor
- * @version 0.8.5
+ * @version 0.8.6
  */
 /*
 Plugin Name: VoucherPress
 Plugin URI: http://www.stillbreathing.co.uk/wordpress/voucherpress/
 Description: VoucherPress allows you to offer downloadable, printable vouchers from your Wordpress site. Vouchers can be available to anyone, or require a name and email address before they can be downloaded.
 Author: Chris Taylor
-Version: 0.8.5
+Version: 0.8.6
 Author URI: http://www.stillbreathing.co.uk/
 */
 
 // set the current version
 function voucherpress_current_version() {
-	return "0.8.5";
+	return "0.8.6";
 }
 
 // set activation hook
@@ -1279,7 +1279,7 @@ function voucherpress_download_emails( $voucherid = 0 ) {
 	global $wpdb;
 	$prefix = $wpdb->prefix;
 	if ( $wpdb->base_prefix != "") { $prefix = $wpdb->base_prefix; }
-	$sql = $wpdb->prepare( "select email, name, guid from " . $prefix . "voucherpress_downloads
+	$sql = $wpdb->prepare( "select v.name as voucher, d.email, d.name, d.guid from " . $prefix . "voucherpress_downloads d inner join " . $prefix . "voucherpress_vouchers v on v.id = d.voucherid
 	where %d = 0
 	or voucherid = %d
 	group by email;",
@@ -1288,9 +1288,9 @@ function voucherpress_download_emails( $voucherid = 0 ) {
 	if ( $emails && is_array( $emails ) && count( $emails ) > 0 ) {
 		header( 'Content-type: application/octet-stream' );
 		header( 'Content-Disposition: attachment; filename="voucher-emails.csv"' );
-		echo "Name,Email,Code\n";
+		echo "Voucher,Name,Email,Code\n";
 		foreach( $emails as $email ) {
-			echo htmlspecialchars( $email->name ) . "," . htmlspecialchars( $email->email ) . "," . htmlspecialchars( $email->guid ) . "\n";
+			echo htmlspecialchars( $email->voucher ) . "," . htmlspecialchars( $email->name ) . "," . htmlspecialchars( $email->email ) . "," . htmlspecialchars( $email->guid ) . "\n";
 		}
 		exit();
 	} else {
