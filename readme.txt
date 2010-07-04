@@ -1,10 +1,10 @@
 === VoucherPress ===
-Contributors: mrwiblog
+Contributors: mrwiblog, Christian Serron (http://twitter.com/cserron)
 Donate link: http://www.stillbreathing.co.uk/donate/
 Tags: buddypress, voucher, vouchers, pdf, print, download, offer, code, special, coupon, ticket, token, 
 Requires at least: 2.8
-Tested up to: 2.9.2
-Stable tag: 0.8.6
+Tested up to: 3.0
+Stable tag: 1.0
 
 VoucherPress is a Wordpress plugin that allows you to give downloadable, printable vouchers/tickets/coupons/tokens in PDF format away on your site.
 
@@ -12,11 +12,13 @@ VoucherPress is a Wordpress plugin that allows you to give downloadable, printab
 
 Have you ever wanted to give away vouchers, tickets, coupons or tokens on your website? If so this plugin is for you. You can create a voucher with whatever text you want, choosing the layout and font from a range of templates (you can also add your own templates). Vouchers can then be viewed, downloaded and printed from a specified URL.
 
-There are shortcodes to add a link to a particular voucher, or to show an unordered list of all your vouchers.
+There are shortcodes to add a link to a particular voucher, to show an unordered list of all your vouchers, or to show the registration for to request a restricted voucher.
 
 You can require visitors to provide their name and email address to get a voucher. If an email address is required an email is sent to the address with a link to the voucher URL. Each voucher has a unique code, and vouchers that have an email address associated with them can only be used once, so once a registration-required voucher is downloaded it can't be downloaded again.
 
 The plugin also makes use of the __() function to allow for easy translation.
+
+Thanks to Christian Serron (http://twitter.com/cserron) for the code to make the vouchers work in widgets (currently disabled, I'm working on this) and to Barry (http://www.betakeygiveaway.com/) for bug testing above and beyond the call of duty.
 
 == Installation ==
 
@@ -24,7 +26,7 @@ The plugin should be placed in your /wp-content/plugins/ directory and activated
 
 == Shortcodes ==
 
-There are three shortcodes available. The first shows a link to a particular voucher, and is in the format:
+There are four shortcodes available. The first shows a link to a particular voucher, and is in the format:
 
 [voucher id="123"]
 
@@ -38,11 +40,17 @@ You can also show an unordered list of all your live vouchers using this shortco
 
 [voucherlist]
 
+And you can also show the form for people to enter their name and email address if they wish to register for a restricted voucher:
+
+[voucherform id="123"]
+
+The shortcodes for any voucher can be found on the edit screen for that voucher.
+
 == Frequently Asked Questions ==
 
 = Why did you write this plugin? =
 
-I'm not sure. it seemed like a good idea, and gave me opportunity to learn a little bit about the TCPDF class.
+I'm not sure. It seemed like a good idea, and gave me opportunity to learn a little bit about the TCPDF class.
 
 = Does this plugin work with any e-commerce plugins? =
 
@@ -62,20 +70,74 @@ Not at the moment, but I'm thinking about how to make that possible.
 
 == Changelog ==
 
-0.8.6 (2010/05/26) Added voucher name to CSV report
-0.8.5 (2010/05/14) Updated plugin URI
-0.8.4 (2010/04/20) Implemented new Plugin Register version.
-0.8.3 (2010/04/17) Fixed bugs with expiry date, download limit and email registration. Changed Plugin Register to be opt-in.
-0.8.2 (2010/04/12) Stopped failure of chmod() on custom templates directory causing warnings
-0.8.1 (2010/04/01) Added voucher code to the CSV download. Added Plugin Register code.
-0.8 (2010/03/23) Made activation even more robust. Changed expiry to separate year/month/day fields. Prepared for own voucher codes.
-0.7 (2010/03/12) Made activation more robust. Fixed bug with non-writeable templates directory. Added expiry date.
-0.6 (2010/03/09) Added shortcode with preview of voucher
-0.5.3 (2010/03/01) Fixed bug with upgrades not creating tables
-0.5.2 (2010/02/25) Fixed bug when no 404.php page found in template. Added link to voucher to voucher edit page. Clarified some sections of the voucher edit page.
-0.5.1 (2010/02/17) Added a support link and donate button
-0.5 (2010/02/15) Fixed bug with download counts occurring in older versions of MySQL
-0.4 (2010/02/14) Fixed bug with email registration. Changed PDF to force download.
-0.3 (2010/02/12) Added check for PHP5
-0.2 (2010/02/12) Fixed bugs with SQL
-0.1 (2010/02/11) Initial version
+= 1.0 (2010/07/04) =
+
+Added different voucher code options. Added registration form shortcode. Moved JavaScript into separate file. Lots of bug fixes.
+
+= 0.8.6 (2010/05/26) =
+
+Added voucher name to CSV report
+
+= 0.8.5 (2010/05/14) =
+
+Updated plugin URI
+
+= 0.8.4 (2010/04/20) =
+
+Implemented new Plugin Register version.
+
+= 0.8.3 (2010/04/17) =
+
+Fixed bugs with expiry date, download limit and email registration. Changed Plugin Register to be opt-in.
+
+= 0.8.2 (2010/04/12) =
+
+Stopped failure of chmod() on custom templates directory causing warnings
+
+= 0.8.1 (2010/04/01) =
+
+Added voucher code to the CSV download. Added Plugin Register code.
+
+= 0.8 (2010/03/23) =
+
+Made activation even more robust. Changed expiry to separate year/month/day fields. Prepared for own voucher codes.
+
+= 0.7 (2010/03/12) =
+
+Made activation more robust. Fixed bug with non-writeable templates directory. Added expiry date.
+
+= 0.6 (2010/03/09) =
+
+Added shortcode with preview of voucher
+
+= 0.5.3 (2010/03/01) =
+
+Fixed bug with upgrades not creating tables
+
+= 0.5.2 (2010/02/25) =
+
+Fixed bug when no 404.php page found in template. Added link to voucher to voucher edit page. Clarified some sections of the voucher edit page.
+
+= 0.5.1 (2010/02/17) =
+
+Added a support link and donate button
+
+= 0.5 (2010/02/15) =
+
+Fixed bug with download counts occurring in older versions of MySQL
+
+= 0.4 (2010/02/14) =
+
+Fixed bug with email registration. Changed PDF to force download.
+
+= 0.3 (2010/02/12) =
+
+Added check for PHP5
+
+= 0.2 (2010/02/12) =
+
+Fixed bugs with SQL
+
+= 0.1 (2010/02/11) =
+
+Initial version

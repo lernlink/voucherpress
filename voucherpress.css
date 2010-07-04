@@ -34,6 +34,10 @@ vertical-align: bottom;
 display: inline;
 margin-right: 2em;
 }
+h2 span.r {
+float: right;
+font-size: 80%;
+}
 .voucherpress_clear {
 clear: both;
 }
