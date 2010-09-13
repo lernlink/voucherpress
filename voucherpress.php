@@ -2,20 +2,20 @@
 /**
  * @package VoucherPress
  * @author Chris Taylor
- * @version 1.0
+ * @version 1.0.1
  */
 /*
 Plugin Name: VoucherPress
 Plugin URI: http://www.stillbreathing.co.uk/wordpress/voucherpress/
 Description: VoucherPress allows you to offer downloadable, printable vouchers from your Wordpress site. Vouchers can be available to anyone, or require a name and email address before they can be downloaded.
 Author: Chris Taylor
-Version: 1.0
+Version: 1.0.1
 Author URI: http://www.stillbreathing.co.uk/
 */
 
 // set the current version
 function voucherpress_current_version() {
-	return "1.0";
+	return "1.0.1";
 }
 
 //define("VOUCHERPRESSDEV", true);
@@ -91,13 +91,17 @@ function voucherpress_template() {
 }
 
 // show a 404 page
-function voucherpress_404() {
+function voucherpress_404($found=true) {
 	global $wp_query;
 	$wp_query->set_404();
 	//if ( file_exists( TEMPLATEPATH.'/404.php' ) ) {
 	//	require TEMPLATEPATH.'/404.php';
 	//} else {
-		wp_die( __( "Sorry, that item was not found", "voucherpress" ) );
+		if ($found) {
+			wp_die( __( "Sorry, that item is not available", "voucherpress" ) );
+		} else {
+			wp_die( __( "Sorry, that item was not found", "voucherpress" ) );
+		}
 	//}
 	exit();
 }
@@ -745,6 +749,15 @@ function voucherpress_edit_voucher_page()
 			}
 		}
 		
+		// if this voucher has an expiry date which has passed
+		if ( $voucher->expiry != "" && (int)$voucher->expiry != 0 && (int)$voucher->expiry <= time() ) {
+			echo '
+			<div id="message" class="updated fade">
+				<p><strong>' . sprintf( __( "This voucher expired on %s. Change the expiry date below to allow this voucher to be downloaded.", "voucherpress" ), date( "F j, Y, g:i a", $voucher->expiry ) ) . '</strong></p>
+			</div>
+			';
+		}
+		
 		echo '
 		<form action="admin.php?page=vouchers&amp;id=' . $_GET["id"] . '" method="post" id="voucherform">
 		
@@ -821,17 +834,17 @@ function voucherpress_edit_voucher_page()
 		
 		<p><label for="expiry">' . __( "Date voucher expires", "voucherpress" ) . '</label>
 		' . __( "Year:", "voucherpress" ) . ' <input type="text" name="expiryyear" id="expiryyear" class="num" value="';
-		if ( $voucher->expiry > 0 ) {
+		if ( $voucher->expiry != "" && $voucher->expiry > 0 ) {
 			echo date( "Y", $voucher->expiry  );
 		}
 		echo '" />
 		' . __( "Month:", "voucherpress" ) . ' <input type="text" name="expirymonth" id="expirymonth" class="num" value="';
-		if ( $voucher->expiry > 0 ) {
+		if ( $voucher->expiry != "" && $voucher->expiry > 0 ) {
 			echo date( "n", $voucher->expiry  );
 		}
 		echo '" />
 		' . __( "Day:", "voucherpress" ) . ' <input type="text" name="expiryday" id="expiryday" class="num" value="';
-		if ( $voucher->expiry > 0 ) {
+		if ( $voucher->expiry != "" && $voucher->expiry > 0 ) {
 			echo date( "j", $voucher->expiry  );
 		}
 		echo '" /> 
@@ -1337,12 +1350,19 @@ function voucher_do_voucher_shortcode( $atts ) {
 	), $atts ) );
 	if ( $id != "" ) {
 		$voucher = voucherpress_get_voucher( $id );
-		if ( $voucher && ( (int)$voucher->expiry == 0 || (int)$voucher->expiry < time() ) ) {
+		if ( $voucher && ( $voucher->expiry == "" || (int)$voucher->expiry == 0 || (int)$voucher->expiry > time() ) ) {
 			if ( $preview == 'true' ) {
 				return '<a href="' . voucherpress_link( $voucher->guid ) . '"><img src="' . get_option( "siteurl" ) . '/wp-content/plugins/voucherpress/templates/' . $voucher->template . '_thumb.jpg" alt="' . htmlspecialchars( $voucher->name ) . '" /></a>';
 			} else {
 				return '<a href="' . voucherpress_link( $voucher->guid ) . '">' . htmlspecialchars( $voucher->name ) . '</a>';
 			}
+		} else {
+			$r = "<!-- The shortcode for voucher " . $id . " is displaying nothing because the voucher was not found, or the expiry date has passed";
+			if ( $voucher ) {
+				$r .= ". Voucher found, expiry: '" . $voucher->expiry . "'";
+			}
+			$r .= " -->";
+			return $r;
 		}
 	}
 }
@@ -1354,8 +1374,14 @@ function voucher_do_voucher_form_shortcode( $atts ) {
 	), $atts ) );
 	if ( $id != "" ) {
 		$voucher = voucherpress_get_voucher( $id );
-		if ( $voucher && ( (int)$voucher->expiry == 0 || (int)$voucher->expiry < time() ) ) {
+		if ( $voucher && ( $voucher->expiry == "" || (int)$voucher->expiry == 0 || (int)$voucher->expiry > time() ) ) {
 			return voucherpress_register_form( $voucher->guid, true );
+		} else {
+			$r = "<!-- The form shortcode for voucher " . $id . " is displaying nothing because the voucher was not found, or the expiry date has passed";
+			if ( $voucher ) {
+				$r .= ". Voucher found, expiry: '" . $voucher->expiry . "'";
+			}
+			$r .= " -->";
 		}
 	}
 }
@@ -1935,28 +1961,33 @@ function voucherpress_download_voucher( $voucher_guid, $download_guid = "" ) {
 		} else if ( $valid === "unavailable" )  {
 		
 			// this voucher is not available
+			print "<!-- The voucher is not available for download -->";
 			voucherpress_404();
 			
 		} else if ( $valid === "runout" )  {
 		
 			// this voucher has run out
+			print "<!-- The voucher has run out -->";
 			voucherpress_runout();
 			
 		} else if ( $valid === "downloaded" )  {
 		
 			// this voucher has been downloaded already
+			print "<!-- The voucher has already been downloaded by this person -->";
 			voucherpress_downloaded();
 			
 		} else if ( $valid === "expired" )  {
 		
 			// this voucher has expired
+			print "<!-- The voucher has expired -->";
 			voucherpress_expired();
 			
 		}
 	} else {
 
 		// this voucher is not available
-		voucherpress_404();
+		print "<!-- The voucher could not be found -->";
+		voucherpress_404(false);
 		
 	}
 }
@@ -2273,7 +2304,7 @@ function voucherpress_download_guid_is_valid( $voucher_guid, $download_guid ) {
 			}
 			
 			// if there is an expiry and the expiry is in the past
-			if ( (int)$row->expiry != 0 && (int)$row->expiry < time() ) {
+			if ( (int)$row->expiry != 0 && (int)$row->expiry <= time() ) {
 				return "expired";
 			}
 			
