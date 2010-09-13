@@ -2,20 +2,20 @@
 /**
  * @package VoucherPress
  * @author Chris Taylor
- * @version 1.0.1
+ * @version 1.0.2
  */
 /*
 Plugin Name: VoucherPress
 Plugin URI: http://www.stillbreathing.co.uk/wordpress/voucherpress/
 Description: VoucherPress allows you to offer downloadable, printable vouchers from your Wordpress site. Vouchers can be available to anyone, or require a name and email address before they can be downloaded.
 Author: Chris Taylor
-Version: 1.0.1
+Version: 1.0.2
 Author URI: http://www.stillbreathing.co.uk/
 */
 
 // set the current version
 function voucherpress_current_version() {
-	return "1.0.1";
+	return "1.0.2";
 }
 
 //define("VOUCHERPRESSDEV", true);
@@ -1555,13 +1555,16 @@ function voucherpress_check_debug_voucher() {
 }
 
 function voucherpress_voucher_downloads( $voucherid = 0 ) {
-	global $wpdb;
+	global $wpdb, $current_blog;
+	$blog_id = 1;
+	if ( is_object( $current_blog ) ) { $blog_id = $current_blog->blog_id; }
 	$prefix = $wpdb->prefix;
 	if ( isset( $wpdb->base_prefix ) ) { $prefix = $wpdb->base_prefix; }
 	$sql = $wpdb->prepare( "select v.name as voucher, d.time, d.downloaded, d.email, d.name, d.code, d.guid from " . $prefix . "voucherpress_downloads d inner join " . $prefix . "voucherpress_vouchers v on v.id = d.voucherid
 	where (%d = 0 or voucherid = %d)
-	and deleted = 0;",
-	$voucherid, $voucherid );
+	and deleted = 0
+	and v.blog_id = %d;",
+	$voucherid, $voucherid, $blog_id );
 	$emails = $wpdb->get_results( $sql );
 	return $emails;
 }
