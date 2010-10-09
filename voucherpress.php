@@ -2,20 +2,20 @@
 /**
  * @package VoucherPress
  * @author Chris Taylor
- * @version 1.0.2
+ * @version 1.1
  */
 /*
 Plugin Name: VoucherPress
 Plugin URI: http://www.stillbreathing.co.uk/wordpress/voucherpress/
 Description: VoucherPress allows you to offer downloadable, printable vouchers from your Wordpress site. Vouchers can be available to anyone, or require a name and email address before they can be downloaded.
 Author: Chris Taylor
-Version: 1.0.2
+Version: 1.1
 Author URI: http://www.stillbreathing.co.uk/
 */
 
 // set the current version
 function voucherpress_current_version() {
-	return "1.0.2";
+	return "1.1";
 }
 
 //define("VOUCHERPRESSDEV", true);
@@ -753,7 +753,7 @@ function voucherpress_edit_voucher_page()
 		if ( $voucher->expiry != "" && (int)$voucher->expiry != 0 && (int)$voucher->expiry <= time() ) {
 			echo '
 			<div id="message" class="updated fade">
-				<p><strong>' . sprintf( __( "This voucher expired on %s. Change the expiry date below to allow this voucher to be downloaded.", "voucherpress" ), date( "F j, Y, g:i a", $voucher->expiry ) ) . '</strong></p>
+				<p><strong>' . sprintf( __( "This voucher expired on %s. Change the expiry date below to allow this voucher to be downloaded.", "voucherpress" ), date( "Y/m/d", $voucher->expiry ) ) . '</strong></p>
 			</div>
 			';
 		}
@@ -1130,7 +1130,8 @@ function voucherpress_templates_page()
 			<tr>
 				<td><a href="' . get_option( "siteurl" ) . '/wp-content/plugins/voucherpress/templates/' . $template->id . '_preview.jpg" class="templatepreview"><img src="' . get_option( "siteurl" ) . '/wp-content/plugins/voucherpress/templates/' . $template->id . '_thumb.jpg" alt="' . $template->name . '" /></a></td>
 				';
-				if ( $template->blog_id != "0" )
+				// if this is not a multisite-wide template
+				if ( $template->blog_id != "0" || ( !defined( 'VHOST' ) && ( !defined( 'MULTISITE' ) || MULTISITE == "" || MULTISITE == false ) ) )
 				{
 				echo '
 				<td><input type="text" name="name' . $template->id . '" value="' . $template->name . '" /></td>
@@ -2070,9 +2071,8 @@ function voucherpress_render_voucher( $voucher, $code ) {
 		$pdf->Write( 5,  stripslashes( $voucher->text ), $link = '', $fill = 0, $align = 'C', $ln = true);
 
 		$registered_name = "";
-		if ( $voucher->registered_name != "" )
-		{
-			$registered_name =  stripslashes( $voucher->registered_name ) . ": ";
+		if ( $voucher->registered_name != "" ) {
+			$registered_name =  __( "Registered to:", "voucherpress" ) . " "  . stripslashes( $voucher->registered_name ) . ": ";
 		}
 		
 		// set code font
@@ -2080,10 +2080,16 @@ function voucherpress_render_voucher( $voucher, $code ) {
 		// print code
 		$pdf->Write( 10, $registered_name . $code, $link = '', $fill = 0, $align = 'C', $ln = true);
 
+		// get the expiry, if it exists
+		$expiry = ""; 
+		if ( $voucher->expiry != "" && (int)$voucher->expiry > 0 ) {
+			$expiry = " " . __( "Expiry:", "voucherpress" ) . " " . date( "Y/m/d", $voucher->expiry );
+		}
+		
 		// set terms font
 		$pdf->SetFont($voucher->font, '', 10);
 		// print terms
-		$pdf->Write( 5,  stripslashes( $voucher->terms ), $link = '', $fill = 0, $align = 'C', $ln = true);
+		$pdf->Write( 5,  stripslashes( $voucher->terms ) . $expiry, $link = '', $fill = 0, $align = 'C', $ln = true);
 
 		// close and output PDF document
 		$pdf->Output( $slug . '.pdf', 'D' );
