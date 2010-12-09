@@ -3,8 +3,8 @@ Contributors: mrwiblog, Christian Serron (http://twitter.com/cserron)
 Donate link: http://www.stillbreathing.co.uk/donate/
 Tags: buddypress, voucher, vouchers, pdf, print, download, offer, code, special, coupon, ticket, token, 
 Requires at least: 2.8
-Tested up to: 3.0
-Stable tag: 1.1.1
+Tested up to: 3.1
+Stable tag: 1.1.2
 
 VoucherPress is a Wordpress plugin that allows you to give downloadable, printable vouchers/tickets/coupons/tokens in PDF format away on your site.
 
@@ -15,6 +15,46 @@ Have you ever wanted to give away vouchers, tickets, coupons or tokens on your w
 There are shortcodes to add a link to a particular voucher, to show an unordered list of all your vouchers, or to show the registration for to request a restricted voucher.
 
 You can require visitors to provide their name and email address to get a voucher. If an email address is required an email is sent to the address with a link to the voucher URL. Each voucher has a unique code, and vouchers that have an email address associated with them can only be used once, so once a registration-required voucher is downloaded it can't be downloaded again.
+
+=== Hooks ===
+
+From version 1.1.2 the plugin also offers a selection of hooks which you can use to run your own custom code. The hooks are:
+
+==== voucherpress_create ====
+
+When a voucher is created, this hook returns the properties of the voucher. You can use it like this:
+
+add_action( 'voucherpress_create', 'my_voucherpress_create_function' );
+function my_voucherpress_create_function( $id, $name, $text, $description, $template, $require_email, $limit, $expiry ) {
+	// do something here...
+}
+
+==== voucherpress_edit ====
+
+When a voucher is edited, this hook returns the properties of the voucher. You can use it like this:
+
+add_action( 'voucherpress_edit', 'my_voucherpress_edit_function' );
+function my_voucherpress_edit_function( $id, $name, $text, $description, $template, $require_email, $limit, $expiry ) {
+	// do something here...
+}
+
+==== voucherpress_register ====
+
+When someone registers to download a voucher and an email is sent to them, this hook returns the voucher and the users details. You can use it like this:
+
+add_action( 'voucherpress_register', 'my_voucherpress_register_function' );
+function my_voucherpress_register_function( $voucher_id, $voucher_name, $user_email, $user_name ) {
+	// do something here...
+}
+
+==== voucherpress_download ====
+
+When someone downloads a voucher, this hook returns the voucher and the users details. You can use it like this:
+
+add_action( 'voucherpress_download', 'my_voucherpress_download_function' );
+function my_voucherpress_download_function( $voucher_id, $voucher_name, $code ) {
+	// do something here...
+}
 
 The plugin also makes use of the __() function to allow for easy translation.
 
@@ -47,6 +87,19 @@ And you can also show the form for people to enter their name and email address 
 The shortcodes for any voucher can be found on the edit screen for that voucher.
 
 == Frequently Asked Questions ==
+
+= My voucher PDF files are corrupted. Why? =
+
+This is normally because PHP isn't given enough memory to create print-resolution PDF files. If you open one of your corrupted PDF files in a text editor it will say something like this:
+
+Fatal error:  Out of memory (allocated 31981568) (tried to allocate 456135 bytes) in
+/some/thing/here/wp-content/plugins/voucherpress/tcpdf/tcpdf.php
+
+Speak to your hosts or system administrator to give PHP more memory. I'm alo working on a way for VoucherPress itself to work around this problem.
+
+= Why i the plugin so big? It's over 20 MB! =
+
+I know, and I'm sorry, but the TCPDF sytem which generates the PDF documents is pretty big. And there's 40+ default layout templates which aren't small either.
 
 = Why did you write this plugin? =
 
