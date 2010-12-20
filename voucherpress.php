@@ -2,20 +2,20 @@
 /**
  * @package VoucherPress
  * @author Chris Taylor
- * @version 1.1.2
+ * @version 1.2
  */
 /*
 Plugin Name: VoucherPress
 Plugin URI: http://www.stillbreathing.co.uk/wordpress/voucherpress/
 Description: VoucherPress allows you to offer downloadable, printable vouchers from your Wordpress site. Vouchers can be available to anyone, or require a name and email address before they can be downloaded.
 Author: Chris Taylor
-Version: 1.1.2
+Version: 1.2
 Author URI: http://www.stillbreathing.co.uk/
 */
 
 // set the current version
 function voucherpress_current_version() {
-	return "1.1.2";
+	return "1.2";
 }
 
 //define("VOUCHERPRESSDEV", true);
@@ -2018,6 +2018,12 @@ function voucherpress_render_voucher( $voucher, $code ) {
 	// get the voucher template image
 	if( voucherpress_template_exists( $voucher->template ) )
 	{
+		// get the current memory limit
+		$memory = ini_get( 'memory_limit' );
+		
+		// try to set the memory limit
+		//@ini_set( 'memory_limit', '64mb' );
+	
 		$slug = voucherpress_slug( $voucher->name );
 	
 		header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
@@ -2038,8 +2044,7 @@ function voucherpress_render_voucher( $voucher, $code ) {
 		$pdf->voucher_image = ABSPATH . 'wp-content/plugins/voucherpress/templates/' . $voucher->template . '.jpg';
 		$pdf->voucher_image_w = 200;
 		$pdf->voucher_image_h = 90;
-		$pdf->voucher_image_dpi = 300;
-		$pdf->setPageFormat(array(200, 90));
+		$pdf->voucher_image_dpi = 150;
 		
 		// set document information
 		$pdf->SetCreator(PDF_CREATOR);
@@ -2073,7 +2078,7 @@ function voucherpress_render_voucher( $voucher, $code ) {
 		$pdf->SetTopMargin(15);
 		
 		// add a page
-		$pdf->AddPage();
+		$pdf->AddPage('L', array(200,90));
 		
 		// set title font
 		$pdf->SetFont($voucher->font, '', 32);
@@ -2108,6 +2113,9 @@ function voucherpress_render_voucher( $voucher, $code ) {
 
 		// close and output PDF document
 		$pdf->Output( $slug . '.pdf', 'D' );
+		
+		// try to set the memory limit back
+		//@ini_set( 'memory_limit', @memory );
 		
 		exit();
 		
