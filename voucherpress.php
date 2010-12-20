@@ -517,7 +517,7 @@ function vouchers_admin()
 			';
 		}
 		echo '
-		<p><a href="admin.php?page=vouchers&amp;download=emails">' . __( "Download all registered email addresses", "voucherpress" ) . '</a></p>
+		<p><a href="' . wp_nonce_url( "admin.php?page=vouchers&amp;download=emails", "voucherpress_download_csv" ) . '">' . __( "Download all registered email addresses", "voucherpress" ) . '</a></p>
 		</div>';
 	
 	// if a voucher has been chosen
@@ -657,7 +657,9 @@ function voucherpress_create_voucher_page()
 	
 	<p><input type="button" name="preview" id="previewbutton" class="button" value="' . __( "Preview", "voucherpress" ) . '" />
 	<input type="submit" name="save" id="savebutton" class="button-primary" value="' . __( "Save", "voucherpress" ) . '" />
-	<input type="hidden" name="template" id="template" value="1" /></p>
+	<input type="hidden" name="template" id="template" value="1" />';
+	wp_nonce_field( "voucherpress_create" );
+	echo '</p>
 	
 	</form>
 	
@@ -685,7 +687,7 @@ function voucherpress_edit_voucher_page()
 		
 		if ( $voucher->downloads > 0 ) {
 			echo __( "Downloads:", "voucherpress" ) . " " . $voucher->downloads;
-			echo ' | <a href="admin.php?page=vouchers&amp;download=emails&amp;voucher=' . $voucher->id . '">' . __( "CSV", "voucherpress" ) . '</a>';
+			echo ' | <a href="' . wp_nonce_url( "admin.php?page=vouchers&amp;download=emails&amp;voucher=" . $voucher->id, "voucherpress_download_csv" ) . '">' . __( "CSV", "voucherpress" ) . '</a>';
 			echo ' | ';
 		}
 		
@@ -949,7 +951,9 @@ function voucherpress_edit_voucher_page()
 		
 		<p><input type="button" name="preview" id="previewbutton" class="button" value="' . __( "Preview", "voucherpress" ) . '" />
 		<input type="submit" name="save" id="savebutton" class="button-primary" value="' . __( "Save", "voucherpress" ) . '" />
-		<input type="hidden" name="template" id="template" value="' . $voucher->template . '" /></p>
+		<input type="hidden" name="template" id="template" value="' . $voucher->template . '" />';
+		wp_nonce_field( "voucherpress_edit" );
+		echo '</p>
 		
 		</form>
 		
@@ -1005,7 +1009,7 @@ function voucherpress_templates_page()
 	if ( $_POST && is_array( $_POST ) && count( $_POST) > 0 )
 	{
 		// if updating templates
-		if ( @$_POST["action"] == "update" )
+		if ( wp_verify_nonce(@$_POST["_wpnonce"], 'voucherpress_edit_template') && @$_POST["action"] == "update" )
 		{
 			// loop templates
 			foreach( $templates as $template )
@@ -1031,7 +1035,7 @@ function voucherpress_templates_page()
 		if ( @$_POST["action"] == "add" )
 		{
 
-			if ( @$_FILES && is_array( $_FILES ) && count( $_FILES ) > 0 && $_FILES["file"]["name"] != "" && (int)$_FILES["file"]["size"] > 0 )
+			if ( wp_verify_nonce(@$_POST["_wpnonce"], 'voucherpress_add_template') && @$_FILES && is_array( $_FILES ) && count( $_FILES ) > 0 && $_FILES["file"]["name"] != "" && (int)$_FILES["file"]["size"] > 0 )
 			{
 				// check the GD functions exist
 				if ( function_exists( "imagecreatetruecolor" ) && function_exists( "getimagesize" ) && function_exists( "imagejpeg" ) ) 
@@ -1065,7 +1069,7 @@ function voucherpress_templates_page()
 						
 							echo '
 							<div id="message" class="error">
-								<p><strong>' . __( "Sorry, the template file you uploaded was not in the correct format (JPEG), or was not the correct size (2362 x 1063 pixels). Please upload a correct template file.", "voucherpress" ) . '</strong></p>
+								<p><strong>' . __( "Sorry, the template file you uploaded was not in the correct format (JPEG), or was not the correct size (1181 x 532 pixels). Please upload a correct template file.", "voucherpress" ) . '</strong></p>
 							</div>
 							';
 						
@@ -1113,7 +1117,9 @@ function voucherpress_templates_page()
 	<input type="text" name="name" id="name" /></p>
 	
 	<p><input type="submit" class="button-primary" value="' . __( "Add template", "voucherpress" ) . '" />
-	<input type="hidden" name="action" value="add" /></p>
+	<input type="hidden" name="action" value="add" />';
+	wp_nonce_field( "voucherpress_add_template" );
+	echo '</p>
 	
 	</form>
 	';
@@ -1154,7 +1160,9 @@ function voucherpress_templates_page()
 		voucherpress_table_footer();
 		echo '
 		<p><input type="submit" class="button-primary" value="' . __( "Save templates", "voucherpress" ) . '" />
-		<input type="hidden" name="action" value="update" /></p>
+		<input type="hidden" name="action" value="update" />';
+		wp_nonce_field( "voucherpress_edit_template" );
+		echo '</p>
 		</form>
 		';
 	} else {
@@ -1419,13 +1427,13 @@ function voucher_do_list_shortcode() {
 // listen for downloads of email addresses
 function voucherpress_check_download() {
 	// download all unique email addresses
-	if ( ( @$_GET["page"] == "vouchers" ) && @$_GET["download"] == "emails" && @$_GET["voucher"] == "" ) {
+	if ( wp_verify_nonce(@$_GET["_wpnonce"], 'voucherpress_download_csv') && ( @$_GET["page"] == "vouchers" ) && @$_GET["download"] == "emails" && @$_GET["voucher"] == "" ) {
 		if ( !voucherpress_download_emails() ) {
 			wp_die( __("Sorry, the list could not be downloaded. Please click back and try again.", "voucherpress" ) );
 		}
 	}
 	// download unique email addresses for a voucher
-	if ( ( @$_GET["page"] == "vouchers" ) && @$_GET["download"] == "emails" && @$_GET["voucher"] != "" ) {
+	if ( wp_verify_nonce(@$_GET["_wpnonce"], 'voucherpress_download_csv') && ( @$_GET["page"] == "vouchers" ) && @$_GET["download"] == "emails" && @$_GET["voucher"] != "" ) {
 		if ( !voucherpress_download_emails($_GET["voucher"]) ) {
 			wp_die( __("Sorry, the list could not be downloaded. Please click back and try again.", "voucherpress" ) );
 		}
@@ -1441,7 +1449,7 @@ function voucherpress_check_preview() {
 
 // listen for creation of a voucher
 function voucherpress_check_create_voucher() {
-	if ( @$_GET["page"] == "vouchers-create" && @$_GET["preview"] == "" && @$_POST && is_array( $_POST ) && count( $_POST ) > 0 ) {
+	if ( wp_verify_nonce(@$_POST["_wpnonce"], 'voucherpress_create') && @$_GET["page"] == "vouchers-create" && @$_GET["preview"] == "" && @$_POST && is_array( $_POST ) && count( $_POST ) > 0 ) {
 		$require_email = 0;
 		if ( isset( $_POST["requireemail"] ) && $_POST["requireemail"] == "1" ) { $require_email = 1; }
 		$limit = 0;
@@ -1485,7 +1493,7 @@ function voucherpress_check_create_voucher() {
 
 // listen for editing of a voucher
 function voucherpress_check_edit_voucher() {
-	if ( @$_GET["page"] == "vouchers" && @$_GET["preview"] == "" && @$_POST && is_array( $_POST ) && count( $_POST ) > 0 ) {
+	if ( wp_verify_nonce(@$_POST["_wpnonce"], 'voucherpress_edit') && @$_GET["page"] == "vouchers" && @$_GET["preview"] == "" && @$_POST && is_array( $_POST ) && count( $_POST ) > 0 ) {
 		if ( isset( $_POST["delete"] ) ) {
 			$done = voucherpress_delete_voucher( $_GET["id"] );
 			if ( $done ) {
@@ -1705,7 +1713,7 @@ function voucherpress_upload_template( $id, $file ) {
 	$imagetype = $imagesize[2];
 	
 	// if the imagesize could be fetched and is JPG, PNG or GIF
-	if ( $imagetype == 2 && $width == 2362 && $height == 1063 )
+	if ( $imagetype == 2 && $width == 1181 && $height == 532 )
 	{
 
 		// check voucherpress is installed correctly
@@ -1713,7 +1721,7 @@ function voucherpress_upload_template( $id, $file ) {
 	
 		$path = ABSPATH . "/wp-content/plugins/voucherpress/templates/";
 		
-		// move the temporary file to the full-size image (2362 x 1063 px @ 72dpi)
+		// move the temporary file to the full-size image (1181 x 532 px @ 150dpi)
 		$fullpath = $path . $id . ".jpg";
 		move_uploaded_file( $file, $fullpath );
 		
