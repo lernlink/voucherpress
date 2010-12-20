@@ -123,9 +123,9 @@ Not at the moment, but I'm thinking about how to make that possible.
 
 == Changelog ==
 
-= 1.2 (2010/12/19) =
+= 1.2 (2010/12/20) =
 
-Changed templates to work at 150dpi to overcome memory limit problem. Also added code to temporarily increase PHP memory limit to 64mb while a voucher is being rendered. Fixed activation bug caused by WordPress breaking the Plugin Register plugin. Upgraded to recent version of TCPDF.
+Changed templates to work at 150dpi to overcome memory limit problem. Also added code to temporarily increase PHP memory limit to 64mb while a voucher is being rendered. Fixed activation bug caused by WordPress breaking the Plugin Register plugin. Upgraded to recent version of TCPDF. Allowed CSV download for all vouchers, not just ones requiring an email address.
 
 = 1.1.2 (2010/11/20) =
 

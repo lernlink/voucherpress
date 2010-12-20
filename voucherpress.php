@@ -685,9 +685,7 @@ function voucherpress_edit_voucher_page()
 		
 		if ( $voucher->downloads > 0 ) {
 			echo __( "Downloads:", "voucherpress" ) . " " . $voucher->downloads;
-			if ( $voucher->require_email == "1" ) {
-				echo ' | <a href="admin.php?page=vouchers&amp;download=emails&amp;voucher=' . $voucher->id . '">' . __( "CSV", "voucherpress" ) . '</a>';
-			}
+			echo ' | <a href="admin.php?page=vouchers&amp;download=emails&amp;voucher=' . $voucher->id . '">' . __( "CSV", "voucherpress" ) . '</a>';
 			echo ' | ';
 		}
 		
