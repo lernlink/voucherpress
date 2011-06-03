@@ -4,7 +4,7 @@ Donate link: http://www.stillbreathing.co.uk/donate/
 Tags: buddypress, voucher, vouchers, pdf, print, download, offer, code, special, coupon, ticket, token, 
 Requires at least: 2.8
 Tested up to: 3.0.3
-Stable tag: 1.2
+Stable tag: 1.3
 
 VoucherPress is a Wordpress plugin that allows you to give downloadable, printable vouchers/tickets/coupons/tokens in PDF format away on your site.
 
@@ -25,7 +25,7 @@ From version 1.1.2 the plugin also offers a selection of hooks which you can use
 When a voucher is created, this hook returns the properties of the voucher. You can use it like this:
 
 add_action( 'voucherpress_create', 'my_voucherpress_create_function' );
-function my_voucherpress_create_function( $id, $name, $text, $description, $template, $require_email, $limit, $expiry ) {
+function my_voucherpress_create_function( $id, $name, $text, $description, $template, $require_email, $limit, $startdate, $expiry ) {
 	// do something here...
 }
 
@@ -34,7 +34,7 @@ function my_voucherpress_create_function( $id, $name, $text, $description, $temp
 When a voucher is edited, this hook returns the properties of the voucher. You can use it like this:
 
 add_action( 'voucherpress_edit', 'my_voucherpress_edit_function' );
-function my_voucherpress_edit_function( $id, $name, $text, $description, $template, $require_email, $limit, $expiry ) {
+function my_voucherpress_edit_function( $id, $name, $text, $description, $template, $require_email, $limit, $startdate, $expiry ) {
 	// do something here...
 }
 
@@ -122,6 +122,10 @@ Not at the moment, but I'm thinking about how to make that possible.
 5. All the default templates
 
 == Changelog ==
+
+= 1.3 (2011/06/03) =
+
+Allowed the expiry date to be a number of days in the future. Also added a start date on which a voucher will become available.
 
 = 1.2 (2010/12/20) =
 

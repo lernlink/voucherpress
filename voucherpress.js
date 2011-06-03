@@ -42,15 +42,16 @@ function vp_check_random(e) {
 }
 function vp_show_random() {
 	jQuery("#codelengthline").show();
+	jQuery("#codeprefixline").show();
+	jQuery("#codesuffixline").show();
 }
 function vp_check_sequential(e) {
 	vp_hide_form_options();
 	if (this.checked) {
-		jQuery("#codeprefixline").show();
-		jQuery("#codesuffixline").show();
+		vp_show_sequential();
 	}
 }
-function vp_show_sequential(e) {
+function vp_show_sequential() {
 	jQuery("#codeprefixline").show();
 	jQuery("#codesuffixline").show();
 }
@@ -62,6 +63,8 @@ function vp_check_custom(e) {
 }
 function vp_show_custom() {
 	jQuery("#customcodelistline").show();
+	jQuery("#codeprefixline").hide();
+	jQuery("#codesuffixline").hide();
 }
 function vp_check_single(e) {
 	vp_hide_form_options();
@@ -71,6 +74,8 @@ function vp_check_single(e) {
 }
 function vp_show_single() {
 	jQuery("#singlecodetextline").show();
+	jQuery("#codeprefixline").hide();
+	jQuery("#codesuffixline").hide();
 }
 function vp_new_window(e) {
 	jQuery(this).attr("target", "_blank");

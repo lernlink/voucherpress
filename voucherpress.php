@@ -2,20 +2,20 @@
 /**
  * @package VoucherPress
  * @author Chris Taylor
- * @version 1.2
+ * @version 1.3
  */
 /*
 Plugin Name: VoucherPress
 Plugin URI: http://www.stillbreathing.co.uk/wordpress/voucherpress/
 Description: VoucherPress allows you to offer downloadable, printable vouchers from your Wordpress site. Vouchers can be available to anyone, or require a name and email address before they can be downloaded.
 Author: Chris Taylor
-Version: 1.2
+Version: 1.3
 Author URI: http://www.stillbreathing.co.uk/
 */
 
 // set the current version
 function voucherpress_current_version() {
-	return "1.2";
+	return "1.3";
 }
 
 //define("VOUCHERPRESSDEV", true);
@@ -32,6 +32,8 @@ voucherpress_init();
 
 function voucherpress_init() {
 	if ( function_exists( "add_action" ) ) {
+		// add init action
+		add_action( "init", "voucherpress_prepare" );
 		// add template redirect action
 		add_action( "template_redirect", "voucherpress_template" );
 		// add the admin menu
@@ -64,6 +66,11 @@ function voucherpress_init() {
 		// [voucherlist]
 		add_shortcode( 'voucherlist', 'voucher_do_list_shortcode' );
 	}
+}
+
+function voucherpress_prepare() {
+	$plugin_dir = basename(dirname(__FILE__));
+	load_plugin_textdomain( 'voucherpress', null, $plugin_dir );
 }
 
 function voucherpress_template() {
@@ -114,6 +121,18 @@ function voucherpress_expired() {
 	//	require TEMPLATEPATH.'/404.php';
 	//} else {
 		wp_die( __( "Sorry, that item has expired", "voucherpress" ) );
+	//}
+	exit();
+}
+
+// show an expired voucher page
+function voucherpress_notyetavailable() {
+	global $wp_query;
+	$wp_query->set_404();
+	//if ( file_exists( TEMPLATEPATH.'/404.php' ) ) {
+	//	require TEMPLATEPATH.'/404.php';
+	//} else {
+		wp_die( __( "Sorry, that item is not yet available", "voucherpress" ) );
 	//}
 	exit();
 }
@@ -312,6 +331,7 @@ function voucherpress_create_tables() {
 			  `limit` MEDIUMINT(9) NOT NULL DEFAULT 0,
 			  guid varchar(36) NOT NULL,
 			  live TINYINT DEFAULT '0',
+			  startdate int DEFAULT '0',
 			  expiry int DEFAULT '0',
 			  codestype varchar(12) DEFAULT 'random',
 			  codeprefix varchar(6) DEFAULT '',
@@ -320,7 +340,7 @@ function voucherpress_create_tables() {
 			  codes MEDIUMTEXT NOT NULL DEFAULT '',
 			  deleted tinyint DEFAULT '0',
 			  PRIMARY KEY  id (id)
-			);";
+			) ENGINE=InnoDB DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;";
 		dbDelta( $sql );
 		
 		// table to store downloads
@@ -335,7 +355,7 @@ function voucherpress_create_tables() {
 			  code varchar(255) NOT NULL,
 			  downloaded TINYINT DEFAULT '0',
 			  PRIMARY KEY  id (id)
-			);";
+			) ENGINE=InnoDB DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;";
 		dbDelta( $sql );
 		
 		// table to store templates
@@ -346,7 +366,7 @@ function voucherpress_create_tables() {
 			  name VARCHAR(55) NOT NULL,
 			  live tinyint DEFAULT '1',
 			  PRIMARY KEY  id (id)
-			);";
+			) ENGINE=InnoDB DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;";
 		dbDelta( $sql );
 		
 		// if there were no voucher download guids found, move the codes
@@ -614,13 +634,30 @@ function voucherpress_create_voucher_page()
 	<p><label for="limit">' . __( "Number of vouchers available", "voucherpress" ) . '</label>
 	<input type="text" name="limit" id="limit" class="num" value="" /> <span>' . __( "Set the number of times this voucher can be downloaded (leave blank or 0 for unlimited)", "voucherpress" ) . '</span></p>
 	
+	<p><label for="startyear">' . __( "Date voucher starts being available", "voucherpress" ) . '</label>
+	' . __( "Year:", "voucherpress" ) . ' <input type="text" name="startyear" id="startyear" class="num" value="" />
+	' . __( "Month:", "voucherpress" ) . ' <input type="text" name="startmonth" id="startmonth" class="num" value="" />
+	' . __( "Day:", "voucherpress" ) . ' <input type="text" name="startday" id="startday" class="num" value="" /> 
+	<span>' . __( "Enter the date on which this voucher will become available (leave blank if this voucher is immediately available)", "voucherpress" ) . '</span></p>
+	
 	<p><label for="expiryyear">' . __( "Date voucher expires", "voucherpress" ) . '</label>
 	' . __( "Year:", "voucherpress" ) . ' <input type="text" name="expiryyear" id="expiryyear" class="num" value="" />
 	' . __( "Month:", "voucherpress" ) . ' <input type="text" name="expirymonth" id="expirymonth" class="num" value="" />
 	' . __( "Day:", "voucherpress" ) . ' <input type="text" name="expiryday" id="expiryday" class="num" value="" /> 
 	<span>' . __( "Enter the date on which this voucher will expire (leave blank for never)", "voucherpress" ) . '</span></p>
 	
+	<p><label for="expirydays">' . __( "Or enter the number of days the voucher will stay live", "voucherpress" ) . '</label>
+	<input type="text" class="num" name="expirydays" id="expirydays" value="" /></p>
+	
 	<h3>' . __( "Voucher codes", "voucherpress" ) . '</h3>
+	
+	<p>' . __("The code prefix and suffix will only be used on random and sequential codes.", "voucherpress") . '</p>
+	
+	<p id="codeprefixline"><label for="codeprefix">' . __( "Code prefix", "voucherpress" ) . '</label>
+	<input type="text" name="codeprefix" id="codeprefix" /> <span>' . __( "Text to show before the code (eg <strong>ABC</strong>123XYZ)", "voucherpress" ) . '</span></p>
+	
+	<p id="codesuffixline"><label for="codesuffix">' . __( "Code suffix", "voucherpress" ) . '</label>
+	<input type="text" name="codesuffix" id="codesuffix" /> <span>' . __( "Text to show after the code (eg ABC123<strong>XYZ</strong>)", "voucherpress" ) . '</span></p>
 	
 	<p><label for="randomcodes">' . __( "Use random codes", "voucherpress" ) . '</label>
 	<input type="radio" name="codestype" id="randomcodes" value="random" checked="checked" /> <span>' . __( "Tick this box to use a random character code on each voucher", "voucherpress" ) . '</span></p>
@@ -636,12 +673,6 @@ function voucherpress_create_voucher_page()
 	
 	<p><label for="sequentialcodes">' . __( "Use sequential codes", "voucherpress" ) . '</label>
 	<input type="radio" name="codestype" id="sequentialcodes" value="sequential" /> <span>' . __( "Tick this box to use sequential codes (1, 2, 3 etc) on each voucher", "voucherpress" ) . '</span></p>
-	
-	<p class="hider" id="codeprefixline"><label for="codeprefix">' . __( "Sequential code prefix", "voucherpress" ) . '</label>
-	<input type="text" name="codeprefix" id="codeprefix" /> <span>' . __( "Text to show before the sequential code (eg <strong>ABC</strong>123XYZ)", "voucherpress" ) . '</span></p>
-	
-	<p class="hider" id="codesuffixline"><label for="codesuffix">' . __( "Sequential code suffix", "voucherpress" ) . '</label>
-	<input type="text" name="codesuffix" id="codesuffix" /> <span>' . __( "Text to show after the sequential code (eg ABC123<strong>XYZ</strong>)", "voucherpress" ) . '</span></p>
 	
 	<p><label for="customcodes">' . __( "Use custom codes", "voucherpress" ) . '</label>
 	<input type="radio" name="codestype" id="customcodes" value="custom" /> <span>' . __( "Tick this box to use your own codes on each download of this voucher. You must enter all the codes you want to use below:", "voucherpress" ) . '</span></p>
@@ -762,6 +793,15 @@ function voucherpress_edit_voucher_page()
 			';
 		}
 		
+		// if this voucher has a start date not yet reached
+		if ( $voucher->startdate != "" && (int)$voucher->startdate != 0 && (int)$voucher->startdate > time() ) {
+			echo '
+			<div id="message" class="updated fade">
+				<p><strong>' . __( "This voucher is not yet available. Change the start date below to allow this voucher to be downloaded.", "voucherpress" ) . '</strong></p>
+			</div>
+			';
+		}
+		
 		echo '
 		<form action="admin.php?page=vouchers&amp;id=' . $_GET["id"] . '" method="post" id="voucherform">
 		
@@ -839,6 +879,24 @@ function voucherpress_edit_voucher_page()
 		<p><label for="limit">' . __( "Number of vouchers available", "voucherpress" ) . '</label>
 		<input type="text" name="limit" id="limit" class="num" value="' . $voucher->limit . '" /> <span>' . __( "Set the number of times this voucher can be downloaded (leave blank for unlimited)", "voucherpress" ) . '</span></p>
 		
+		<p><label for="startyear">' . __( "Date voucher starts being available", "voucherpress" ) . '</label>
+		' . __( "Year:", "voucherpress" ) . ' <input type="text" name="startyear" id="startyear" class="num" value="';
+		if ( $voucher->startdate != "" && $voucher->startdate > 0 ) {
+			echo date( "Y", $voucher->startdate  );
+		}
+		echo '" />
+		' . __( "Month:", "voucherpress" ) . ' <input type="text" name="startmonth" id="startmonth" class="num" value="';
+		if ( $voucher->startdate != "" && $voucher->startdate > 0 ) {
+			echo date( "n", $voucher->startdate  );
+		}
+		echo '" />
+		' . __( "Day:", "voucherpress" ) . ' <input type="text" name="startday" id="startday" class="num" value="';
+		if ( $voucher->startdate != "" && $voucher->startdate > 0 ) {
+			echo date( "j", $voucher->startdate  );
+		}
+		echo '" /> 
+		<span>' . __( "Enter the date on which this voucher will become available (leave blank if this voucher is available immediately)", "voucherpress" ) . '</span></p>
+		
 		<p><label for="expiry">' . __( "Date voucher expires", "voucherpress" ) . '</label>
 		' . __( "Year:", "voucherpress" ) . ' <input type="text" name="expiryyear" id="expiryyear" class="num" value="';
 		if ( $voucher->expiry != "" && $voucher->expiry > 0 ) {
@@ -857,6 +915,9 @@ function voucherpress_edit_voucher_page()
 		echo '" /> 
 		<span>' . __( "Enter the date on which this voucher will expire (leave blank for never)", "voucherpress" ) . '</span></p>
 		
+		<p><label for="expirydays">' . __( "Or enter the number of days the voucher will stay live", "voucherpress" ) . '</label>
+	<input type="text" class="num" name="expirydays" id="expirydays" value="" /></p>
+		
 		<p><strong>' . __( "This box MUST be ticked for this voucher to be available.", "voucherpress" ) . '</strong></p>
 		<p><label for="live">' . __( "Voucher available", "voucherpress" ) . '</label>
 		<input type="checkbox" name="live" id="live" value="1"';
@@ -866,6 +927,14 @@ function voucherpress_edit_voucher_page()
 		echo '/> <span>' . __( "Tick this box to allow this voucher to be downloaded", "voucherpress" ) . '</span></p>
 		
 		<h3>' . __( "Voucher codes", "voucherpress" ) . '</h3>
+	
+		<p>' . __("The code prefix and suffix will only be used on random and sequential codes.", "voucherpress") . '</p>
+	
+		<p id="codeprefixline"><label for="codeprefix">' . __( "Code prefix", "voucherpress" ) . '</label>
+	<input type="text" name="codeprefix" id="codeprefix" value="' . $voucher->codeprefix . '" /> <span>' . __( "Text to show before the sequential code (eg <strong>ABC</strong>123XYZ)", "voucherpress" ) . '</span></p>
+	
+		<p id="codesuffixline"><label for="codesuffix">' . __( "Code suffix", "voucherpress" ) . '</label>
+	<input type="text" name="codesuffix" id="codesuffix" value="' . $voucher->codesuffix . '" /> <span>' . __( "Text to show after the sequential code (eg ABC123<strong>XYZ</strong>)", "voucherpress" ) . '</span></p>
 	
 		<p><label for="randomcodes">' . __( "Use random codes", "voucherpress" ) . '</label>
 		<input type="radio" name="codestype" id="randomcodes" value="random"';
@@ -909,12 +978,6 @@ function voucherpress_edit_voucher_page()
 			echo ' checked="checked"';
 		}
 		echo ' /> <span>' . __( "Tick this box to use sequential codes (1, 2, 3 etc) on each voucher", "voucherpress" ) . '</span></p>
-		
-		<p class="hider" id="codeprefixline"><label for="codeprefix">' . __( "Sequential code prefix", "voucherpress" ) . '</label>
-	<input type="text" name="codeprefix" id="codeprefix" value="' . $voucher->codeprefix . '" /> <span>' . __( "Text to show before the sequential code (eg <strong>ABC</strong>123XYZ)", "voucherpress" ) . '</span></p>
-	
-		<p class="hider" id="codesuffixline"><label for="codesuffix">' . __( "Sequential code suffix", "voucherpress" ) . '</label>
-	<input type="text" name="codesuffix" id="codesuffix" value="' . $voucher->codesuffix . '" /> <span>' . __( "Text to show after the sequential code (eg ABC123<strong>XYZ</strong>)", "voucherpress" ) . '</span></p>
 		
 		<p><label for="customcodes">' . __( "Use custom codes", "voucherpress" ) . '</label>
 		<input type="radio" name="codestype" id="customcodes" value="custom"';
@@ -1364,16 +1427,16 @@ function voucher_do_voucher_shortcode( $atts ) {
 	), $atts ) );
 	if ( $id != "" ) {
 		$voucher = voucherpress_get_voucher( $id );
-		if ( $voucher && ( $voucher->expiry == "" || (int)$voucher->expiry == 0 || (int)$voucher->expiry > time() ) ) {
+		if ( $voucher && ( ( $voucher->expiry == "" || (int)$voucher->expiry == 0 || (int)$voucher->expiry > time() ) ) && ( $voucher->startdate == "" || (int)$voucher->startdate == 0 || (int)$voucher->startdate < time() ) ) {
 			if ( $preview == 'true' ) {
 				return '<a href="' . voucherpress_link( $voucher->guid ) . '"><img src="' . get_option( "siteurl" ) . '/wp-content/plugins/voucherpress/templates/' . $voucher->template . '_thumb.jpg" alt="' . htmlspecialchars( $voucher->name ) . '" /></a>';
 			} else {
 				return '<a href="' . voucherpress_link( $voucher->guid ) . '">' . htmlspecialchars( $voucher->name ) . '</a>';
 			}
 		} else {
-			$r = "<!-- The shortcode for voucher " . $id . " is displaying nothing because the voucher was not found, or the expiry date has passed";
+			$r = "<!-- The shortcode for voucher " . $id . " is displaying nothing because the voucher was not found, or the expiry date has passed, or the start date is still in the future";
 			if ( $voucher ) {
-				$r .= ". Voucher found, expiry: '" . $voucher->expiry . "'";
+				$r .= ". Voucher found, expiry: " . $voucher->expiry . ", start date: " . $voucher->startdate;
 			}
 			$r .= " -->";
 			return $r;
@@ -1388,12 +1451,12 @@ function voucher_do_voucher_form_shortcode( $atts ) {
 	), $atts ) );
 	if ( $id != "" ) {
 		$voucher = voucherpress_get_voucher( $id );
-		if ( $voucher && ( $voucher->expiry == "" || (int)$voucher->expiry == 0 || (int)$voucher->expiry > time() ) ) {
+		if ( $voucher && ( ( $voucher->expiry == "" || (int)$voucher->expiry == 0 || (int)$voucher->expiry > time() ) ) && ( $voucher->startdate == "" || (int)$voucher->startdate == 0 || (int)$voucher->startdate < time() ) ) {
 			return voucherpress_register_form( $voucher->guid, true );
 		} else {
-			$r = "<!-- The form shortcode for voucher " . $id . " is displaying nothing because the voucher was not found, or the expiry date has passed";
+			$r = "<!-- The form shortcode for voucher " . $id . " is displaying nothing because the voucher was not found, or the expiry date has passed, or the start date is still in the future";
 			if ( $voucher ) {
-				$r .= ". Voucher found, expiry: '" . $voucher->expiry . "'";
+				$r .= ". Voucher found, expiry: " . $voucher->expiry . ", start date: " . $voucher->startdate;
 			}
 			$r .= " -->";
 		}
@@ -1454,8 +1517,12 @@ function voucherpress_check_create_voucher() {
 		if ( isset( $_POST["requireemail"] ) && $_POST["requireemail"] == "1" ) { $require_email = 1; }
 		$limit = 0;
 		if ( $_POST["limit"] != "" && $_POST["limit"] != "0" ) { $limit = (int)$_POST["limit"]; }
+		$startdate = 0;
+		if ( $_POST["startyear"] != "" && $_POST["startyear"] != "0" && $_POST["startmonth"] != "" && $_POST["startmonth"] != "0" && $_POST["startday"] != "" && $_POST["startday"] != "0" ) { $startdate = strtotime( $_POST["startyear"] . "/" . $_POST["startmonth"] . "/" . $_POST["startday"]); }
 		$expiry = 0;
 		if ( $_POST["expiryyear"] != "" && $_POST["expiryyear"] != "0" && $_POST["expirymonth"] != "" && $_POST["expirymonth"] != "0" && $_POST["expiryday"] != "" && $_POST["expiryday"] != "0" ) { $expiry = strtotime( $_POST["expiryyear"] . "/" . $_POST["expirymonth"] . "/" . $_POST["expiryday"]); }
+		if ( $_POST["expirydays"] != "" && is_numeric( $_POST["expirydays"] ) > 0 ) { $expiry = time() + ( intval( $_POST["expirydays"] ) * 24 * 60 * 60 ); }
+		if ( $_POST["expirydays"] != "" && is_numeric( $_POST["expirydays"] ) > 0 && $startdate > 0 ) { $expiry = $startdate + ( intval( $_POST["expirydays"] ) * 24 * 60 * 60 ); } 
 		if ( $_POST["codestype"] == "random" || $_POST["codestype"]== "sequential" || $_POST["codestype"]== "custom" || $_POST["codestype"]== "single" ) {
 			$codestype = $_POST["codestype"];
 		} else {
@@ -1478,7 +1545,7 @@ function voucherpress_check_create_voucher() {
 		if ( $_POST["codestype"]== "single" ) {
 			$codes = trim( $_POST["singlecodetext"] );
 		}
-		$array = voucherpress_create_voucher( $_POST["name"], $require_email, $limit, $_POST["text"], $_POST["description"], $_POST["template"], $_POST["font"], $_POST["terms"], $expiry, $codestype, $codelength, $codeprefix, $codesuffix, $codes );
+		$array = voucherpress_create_voucher( $_POST["name"], $require_email, $limit, $_POST["text"], $_POST["description"], $_POST["template"], $_POST["font"], $_POST["terms"], $startdate, $expiry, $codestype, $codelength, $codeprefix, $codesuffix, $codes );
 		if ( $array && is_array( $array ) && $array[0] == true && $array[1] > 0 ) {
 			// eventually the plugin will create thumbnails for a voucher
 			//voucherpress_create_voucher_thumb( $array[1], $_POST["template"], $_POST["font"], $_POST["name"], $_POST["text"], $_POST["terms"] );
@@ -1510,8 +1577,12 @@ function voucherpress_check_edit_voucher() {
 		if ( isset( $_POST["live"] ) && $_POST["live"] == "1" ) { $live = 1; }
 		$limit = 0;
 		if ( $_POST["limit"] != "" && $_POST["limit"] != "0" ) { $limit = (int)$_POST["limit"]; }
+		$startdate = 0;
+		if ( $_POST["startyear"] != "" && $_POST["startyear"] != "0" && $_POST["startmonth"] != "" && $_POST["startmonth"] != "0" && $_POST["startday"] != "" && $_POST["startday"] != "0" ) { $startdate = strtotime( $_POST["startyear"] . "/" . $_POST["startmonth"] . "/" . $_POST["startday"]); }
 		$expiry = 0;
 		if ( $_POST["expiryyear"] != "" && $_POST["expiryyear"] != "0" && $_POST["expirymonth"] != "" && $_POST["expirymonth"] != "0" && $_POST["expiryday"] != "" && $_POST["expiryday"] != "0" ) { $expiry = strtotime( $_POST["expiryyear"] . "/" . $_POST["expirymonth"] . "/" . $_POST["expiryday"]); }
+		if ( $_POST["expirydays"] != "" && is_numeric( $_POST["expirydays"] ) > 0 ) { $expiry = time() + ( intval( $_POST["expirydays"] ) * 24 * 60 * 60 ); }
+		if ( $_POST["expirydays"] != "" && is_numeric( $_POST["expirydays"] ) > 0 && $startdate > 0 ) { $expiry = $startdate + ( intval( $_POST["expirydays"] ) * 24 * 60 * 60 ); } 
 		if ( $_POST["codestype"] == "random" || $_POST["codestype"]== "sequential" || $_POST["codestype"]== "custom" || $_POST["codestype"]== "single" ) {
 			$codestype = $_POST["codestype"];
 		} else {
@@ -1534,7 +1605,7 @@ function voucherpress_check_edit_voucher() {
 		if ( $_POST["codestype"]== "single" ) {
 			$codes = trim( $_POST["singlecodetext"] );
 		}
-		$done = voucherpress_edit_voucher( $_GET["id"], $_POST["name"], $require_email, $limit, $_POST["text"], $_POST["description"], $_POST["template"], $_POST["font"], $_POST["terms"], $live, $expiry, $codestype, $codelength, $codeprefix, $codesuffix, $codes );
+		$done = voucherpress_edit_voucher( $_GET["id"], $_POST["name"], $require_email, $limit, $_POST["text"], $_POST["description"], $_POST["template"], $_POST["font"], $_POST["terms"], $live, $startdate, $expiry, $codestype, $codelength, $codeprefix, $codesuffix, $codes );
 		if ( $done ) {
 			header( "Location: admin.php?page=vouchers&id=" . $_GET["id"] . "&result=3" );
 			exit();
@@ -1615,7 +1686,7 @@ function voucherpress_preview_voucher( $template, $font, $name, $text, $terms ) 
 }
 
 // create a new voucher
-function voucherpress_create_voucher( $name, $require_email, $limit, $text, $description, $template, $font, $terms, $expiry, $codestype, $codelength, $codeprefix, $codesuffix, $codes ) {
+function voucherpress_create_voucher( $name, $require_email, $limit, $text, $description, $template, $font, $terms, $startdate, $expiry, $codestype, $codelength, $codeprefix, $codesuffix, $codes ) {
 
 	// check voucherpress is installed correctly
 	voucherpress_check_install();
@@ -1626,21 +1697,21 @@ function voucherpress_create_voucher( $name, $require_email, $limit, $text, $des
 	$prefix = $wpdb->prefix;
 	if ( isset( $wpdb->base_prefix ) ) { $prefix = $wpdb->base_prefix; }
 	$sql = $wpdb->prepare( "insert into " . $prefix . "voucherpress_vouchers 
-	(blog_id, name, `text`, `description`, terms, template, font, require_email, `limit`, guid, time, live, expiry, codestype, codelength, codeprefix, codesuffix, codes, deleted) 
+	(blog_id, name, `text`, `description`, terms, template, font, require_email, `limit`, guid, time, live, startdate, expiry, codestype, codelength, codeprefix, codesuffix, codes, deleted) 
 	values 
-	(%d, %s, %s, %s, %s, %d, %s, %d, %d, %s, %d, %d, %d, %s, %d, %s, %s, %s, 0);", 
-	$blog_id, $name, $text, $description, $terms, $template, $font, $require_email, $limit, $guid, time(), 1, $expiry, $codestype, $codelength, $codeprefix, $codesuffix, $codes );
+	(%d, %s, %s, %s, %s, %d, %s, %d, %d, %s, %d, %d, %d, %d, %s, %d, %s, %s, %s, 0);", 
+	$blog_id, $name, $text, $description, $terms, $template, $font, $require_email, $limit, $guid, time(), 1, $startdate, $expiry, $codestype, $codelength, $codeprefix, $codesuffix, $codes );
 	$done = $wpdb->query( $sql );
 	$id = 0;
 	if ( $done ) {
 		$id = $wpdb->insert_id;
-		do_action( "voucherpress_create", $id, $name, $text, $description, $template, $require_email, $limit, $expiry );
+		do_action( "voucherpress_create", $id, $name, $text, $description, $template, $require_email, $limit, $startdate, $expiry );
 	}
 	return array( $done, $id );
 }
 
 // create a new voucher thumbnail
-function voucherpress_create_voucher_thumb( $id, $name, $require_email, $limit, $text, $template, $font, $terms, $expiry ) {
+function voucherpress_create_voucher_thumb( $id, $name, $require_email, $limit, $text, $template, $font, $terms, $startdate, $expiry ) {
 	// do nothing
 }
 
@@ -1663,7 +1734,7 @@ function voucherpress_delete_voucher( $id ) {
 }
 
 // edit a voucher
-function voucherpress_edit_voucher( $id, $name, $require_email, $limit, $text, $description, $template, $font, $terms, $live, $expiry, $codestype, $codelength, $codeprefix, $codesuffix, $codes ) {
+function voucherpress_edit_voucher( $id, $name, $require_email, $limit, $text, $description, $template, $font, $terms, $live, $startdate, $expiry, $codestype, $codelength, $codeprefix, $codesuffix, $codes ) {
 
 	// check voucherpress is installed correctly
 	voucherpress_check_install();
@@ -1683,6 +1754,7 @@ function voucherpress_edit_voucher( $id, $name, $require_email, $limit, $text, $
 	require_email = %d,
 	`limit` = %d,
 	live = %d,
+	startdate = %d,
 	expiry = %d,
 	codestype = %s,
 	codelength = %d,
@@ -1691,10 +1763,10 @@ function voucherpress_edit_voucher( $id, $name, $require_email, $limit, $text, $
 	codes = %s
 	where id = %d 
 	and blog_id = %d;", 
-	time(), $name, $text, $description, $terms, $template, $font, $require_email, $limit, $live, $expiry, $codestype, $codelength, $codeprefix, $codesuffix, $codes, $id, $blog_id );
+	time(), $name, $text, $description, $terms, $template, $font, $require_email, $limit, $live, $startdate, $expiry, $codestype, $codelength, $codeprefix, $codesuffix, $codes, $id, $blog_id );
 	$done = $wpdb->query( $sql );
 	if ( $done ) {
-		do_action( "voucherpress_edit", $id, $name, $text, $description, $template, $require_email, $limit, $expiry );
+		do_action( "voucherpress_edit", $id, $name, $text, $description, $template, $require_email, $limit, $startdate, $expiry );
 	}
 	return $done;
 }
@@ -1806,7 +1878,7 @@ function voucherpress_get_all_vouchers( $num = 25, $start = 0 ) {
 	if ($num == 0) { $limit = ""; }
 	$prefix = $wpdb->prefix;
 	if ( isset( $wpdb->base_prefix ) ) { $prefix = $wpdb->base_prefix; }
-	$sql = "select b.domain, b.path, v.id, v.name, v.`text`, v.terms, v.require_email, v.`limit`, v.live, v.expiry, v.guid, 
+	$sql = "select b.domain, b.path, v.id, v.name, v.`text`, v.terms, v.require_email, v.`limit`, v.live, v.startdate, v.expiry, v.guid, 
 (select count(d.id) from " . $prefix . "voucherpress_downloads d where d.voucherid = v.id) as downloads
 from " . $prefix . "voucherpress_vouchers v
 inner join " . $wpdb->base_prefix . "blogs b on b.blog_id = v.blog_id
@@ -1827,14 +1899,16 @@ function voucherpress_get_vouchers( $num = 25, $all=false ) {
 	if ($num == 0) { $limit = ""; }
 	$prefix = $wpdb->prefix;
 	if ( isset( $wpdb->base_prefix ) ) { $prefix = $wpdb->base_prefix; }
-	$sql = $wpdb->prepare( "select v.id, v.name, v.`text`, v.`description`, v.terms, v.require_email, v.`limit`, v.live, v.expiry, v.guid, 
+	$sql = $wpdb->prepare( "select v.id, v.name, v.`text`, v.`description`, v.terms, v.require_email, v.`limit`, v.live, v.startdate, v.expiry, v.guid, 
 (select count(d.id) from " . $prefix . "voucherpress_downloads d where d.voucherid = v.id) as downloads
 from " . $prefix . "voucherpress_vouchers v
 where (%s = '1' or v.live = 1)
+and (%s = '1' or (expiry = '' or expiry = 0 or expiry > %d))
+and (%s = '1' or (startdate = '' or startdate = 0 or startdate <= %d))
 and v.blog_id = %d
 and v.deleted = 0
 order by v.time desc 
-" . $limit . ";", $showall, $blog_id );
+" . $limit . ";", $showall, $showall, time(), $showall, time(), $blog_id );
 	return $wpdb->get_results( $sql );
 }
 
@@ -1846,7 +1920,7 @@ function voucherpress_get_all_popular_vouchers( $num = 25, $start = 0 ) {
 	if ($num == 0) { $limit = ""; }
 	$prefix = $wpdb->prefix;
 	if ( isset( $wpdb->base_prefix ) ) { $prefix = $wpdb->base_prefix; }
-	$sql = "select b.domain, b.path, v.id, v.name, v.`text`, v.`description`, v.terms, v.require_email, v.`limit`, v.live, v.expiry, v.guid, 
+	$sql = "select b.domain, b.path, v.id, v.name, v.`text`, v.`description`, v.terms, v.require_email, v.`limit`, v.live, v.startdate, v.expiry, v.guid, 
 count(d.id) as downloads
 from " . $prefix . "voucherpress_downloads d 
 inner join " . $prefix . "voucherpress_vouchers v on v.id = d.voucherid
@@ -1866,7 +1940,7 @@ function voucherpress_get_popular_vouchers( $num = 25 ) {
 	if ($num == 0) { $limit = ""; }
 	$prefix = $wpdb->prefix;
 	if ( isset( $wpdb->base_prefix ) ) { $prefix = $wpdb->base_prefix; }
-	$sql = $wpdb->prepare( "select v.id, v.name, v.`text`, v.`description`, v.terms, v.require_email, v.`limit`, v.live, v.expiry, v.guid, 
+	$sql = $wpdb->prepare( "select v.id, v.name, v.`text`, v.`description`, v.terms, v.require_email, v.`limit`, v.live, v.startdate, v.expiry, v.guid, 
 count(d.id) as downloads
 from " . $prefix . "voucherpress_downloads d 
 inner join " . $prefix . "voucherpress_vouchers v on v.id = d.voucherid
@@ -1889,43 +1963,49 @@ function voucherpress_get_voucher( $voucher, $live = 1, $code = "", $unexpired =
 	if ( isset( $wpdb->base_prefix ) ) { $prefix = $wpdb->base_prefix; }
 	// get by id
 	if ( is_numeric( $voucher ) ) {
-		$sql = $wpdb->prepare( "select v.id, v.name, v.`text`, v.`description`, v.terms, v.font, v.template, v.require_email, v.`limit`, v.expiry, v.guid, v.live, '' as registered_email, '' as registered_name,
+		$sql = $wpdb->prepare( "select v.id, v.name, v.`text`, v.`description`, v.terms, v.font, v.template, v.require_email, v.`limit`, v.startdate, v.expiry, v.guid, v.live, '' as registered_email, '' as registered_name,
 		v.codestype, v.codeprefix, v.codesuffix, v.codelength, v.codes,
 		(select count(d.id) from " . $prefix . "voucherpress_downloads d where d.voucherid = v.id) as downloads
 		from " . $prefix . "voucherpress_vouchers v
 		where 
-		(%d = 0 or v.live = 1)
+		(%s = '0' or v.live = 1)
+		and (%s = '0' or (expiry = '' or expiry = 0 or expiry > %d))
+		and (%s = '0' or (startdate = '' or startdate = 0 or startdate <= %d))
 		and v.id = %d
 		and v.deleted = 0
 		and v.blog_id = %d", 
-		$live, $voucher, $blog_id );
+		$live, $live, time(), $live, time(), $voucher, $blog_id );
 	// get by guid
 	} else {
 		// if a download code has been specified
 		if ( $code != "")
 		{
-			$sql = $wpdb->prepare( "select v.id, v.name, v.`text`, v.`description`, v.terms, v.font, v.template, v.require_email, v.`limit`, v.expiry, v.guid, v.live, r.email as registered_email, r.name as registered_name,
+			$sql = $wpdb->prepare( "select v.id, v.name, v.`text`, v.`description`, v.terms, v.font, v.template, v.require_email, v.`limit`, v.startdate, v.expiry, v.guid, v.live, r.email as registered_email, r.name as registered_name,
 			v.codestype, v.codeprefix, v.codesuffix, v.codelength, v.codes,
 			(select count(d.id) from " . $prefix . "voucherpress_downloads d where d.voucherid = v.id) as downloads
 			from " . $prefix . "voucherpress_vouchers v
 			left outer join " . $prefix . "voucherpress_downloads r on r.voucherid = v.id and r.guid = %s
 			where 
-			v.live = 1
+			(%s = '0' or v.live = 1)
+			and (%s = '0' or (expiry = '' or expiry = 0 or expiry > %d))
+			and (%s = '0' or (startdate = '' or startdate = 0 or startdate <= %d))
 			and v.deleted = 0
 			and v.guid = %s
 			and v.blog_id = %d", 
-			$code, $voucher, $blog_id );
+			$code, $live, $live, time(), $live, time(), $voucher, $blog_id );
 		} else {
-			$sql = $wpdb->prepare( "select v.id, v.name, v.`text`, v.`description`, v.terms, v.font, v.template, v.require_email, v.`limit`, v.expiry, v.guid, v.live, '' as registered_email, '' as registered_name,
+			$sql = $wpdb->prepare( "select v.id, v.name, v.`text`, v.`description`, v.terms, v.font, v.template, v.require_email, v.`limit`, v.startdate, v.expiry, v.guid, v.live, '' as registered_email, '' as registered_name,
 			v.codestype, v.codeprefix, v.codesuffix, v.codelength, v.codes,
 			(select count(d.id) from " . $prefix . "voucherpress_downloads d where d.voucherid = v.id) as downloads
 			from " . $prefix . "voucherpress_vouchers v
 			where 
-			(%d = 0 or v.live = 1)
+			(%s = '0' or v.live = 1)
+			and (%s = '0' or (expiry = '' or expiry = 0 or expiry > %d))
+			and (%s = '0' or (startdate = '' or startdate = 0 or startdate <= %d))
 			and v.deleted = 0
 			and v.guid = %s
 			and v.blog_id = %d", 
-			$live, $voucher, $blog_id);
+			$live, $live, time(), $live, time(), $voucher, $blog_id);
 		}
 	}
 	$row = $wpdb->get_row( $sql );
@@ -2006,6 +2086,12 @@ function voucherpress_download_voucher( $voucher_guid, $download_guid = "" ) {
 			// this voucher has expired
 			print "<!-- The voucher has expired -->";
 			voucherpress_expired();
+			
+		} else if ( $valid === "notyetavailable" )  {
+		
+			// this voucher is not yet available
+			print "<!-- The voucher is not yet available -->";
+			voucherpress_notyetavailable();
 			
 		}
 	} else {
@@ -2330,7 +2416,7 @@ function voucherpress_download_guid_is_valid( $voucher_guid, $download_guid ) {
 		if ( isset( $wpdb->base_prefix ) ) { $prefix = $wpdb->base_prefix; }
 		$blog_id = voucherpress_blog_id();
 		global $wpdb;
-		$sql = $wpdb->prepare( "select v.id, v.require_email, ifnull( d.email, '' ) as email, ifnull( d.downloaded, 0 ) as downloaded, v.`limit`, v.expiry from
+		$sql = $wpdb->prepare( "select v.id, v.require_email, ifnull( d.email, '' ) as email, ifnull( d.downloaded, 0 ) as downloaded, v.`limit`, v.startdate, v.expiry from
 				" . $prefix . "voucherpress_vouchers v
 				left outer join " . $prefix . "voucherpress_downloads d on d.voucherid = v.id and d.guid = %s
 				where v.guid = %s
@@ -2355,6 +2441,11 @@ function voucherpress_download_guid_is_valid( $voucher_guid, $download_guid ) {
 			// if there is an expiry and the expiry is in the past
 			if ( (int)$row->expiry != 0 && (int)$row->expiry <= time() ) {
 				return "expired";
+			}
+			
+			// if there is a start date and the tart date is in the future
+			if ( (int)$row->startdate != 0 && (int)$row->startdate > time() ) {
+				return "notyetavailable";
 			}
 			
 			// if emails are not required
@@ -2460,7 +2551,7 @@ function voucherpress_create_code( $voucherid ) {
 	} else {
 	
 		// create the random code
-		$code = voucherpress_guid($voucher_codestype->codelength);
+		$code = $voucher_codestype->codeprefix . voucherpress_guid($voucher_codestype->codelength) . $voucher_codestype->codesuffix;
 		
 	}
 	return $code;
