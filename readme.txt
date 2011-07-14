@@ -3,8 +3,8 @@ Contributors: mrwiblog, Christian Serron (http://twitter.com/cserron)
 Donate link: http://www.stillbreathing.co.uk/donate/
 Tags: buddypress, voucher, vouchers, pdf, print, download, offer, code, special, coupon, ticket, token, 
 Requires at least: 2.8
-Tested up to: 3.0.3
-Stable tag: 1.3
+Tested up to: 3.2.1
+Stable tag: 1.4
 
 VoucherPress is a Wordpress plugin that allows you to give downloadable, printable vouchers/tickets/coupons/tokens in PDF format away on your site.
 
@@ -72,13 +72,25 @@ There are four shortcodes available. The first shows a link to a particular vouc
 
 The "id" parameter is the unique ID of the voucher. The correct ID to use is available in the screen where you edit the voucher.
 
+You can also how the description after the link:
+
+[voucher id="123" description="true"]
+
 The second shows a link to a voucher, but with a preview of the voucher (just the background image, no text) and the voucher name as the image alternate text:
 
 [voucher id="123" preview="true"]
 
+And you can show the description after the preview as well:
+
+[voucher id="123" preview="true" description="true"]
+
 You can also show an unordered list of all your live vouchers using this shortcode:
 
 [voucherlist]
+
+And a list of all live vouchers with their descriptions:
+
+[voucherlist description="true"]
 
 And you can also show the form for people to enter their name and email address if they wish to register for a restricted voucher:
 
@@ -122,6 +134,12 @@ Not at the moment, but I'm thinking about how to make that possible.
 5. All the default templates
 
 == Changelog ==
+
+= 1.4 (2011/07/14) =
+
+Fixed bug with vouchers that require an email address
+Added optional displaying of voucher descriptions in shortcodes
+Style changes
 
 = 1.3 (2011/06/03) =
 

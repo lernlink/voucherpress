@@ -2,20 +2,20 @@
 /**
  * @package VoucherPress
  * @author Chris Taylor
- * @version 1.3
+ * @version 1.4
  */
 /*
 Plugin Name: VoucherPress
 Plugin URI: http://www.stillbreathing.co.uk/wordpress/voucherpress/
 Description: VoucherPress allows you to offer downloadable, printable vouchers from your Wordpress site. Vouchers can be available to anyone, or require a name and email address before they can be downloaded.
 Author: Chris Taylor
-Version: 1.3
+Version: 1.4
 Author URI: http://www.stillbreathing.co.uk/
 */
 
 // set the current version
 function voucherpress_current_version() {
-	return "1.3";
+	return "1.4";
 }
 
 //define("VOUCHERPRESSDEV", true);
@@ -54,11 +54,6 @@ function voucherpress_init() {
 			add_action( "admin_head", "voucherpress_admin_js" );
 		}
 		// setup shortcodes
-		if ( !is_admin() ) {
-			//add_filter('widget_text', 'voucher_do_voucher_shortcode', 11);
-			//add_filter('widget_text', 'voucher_do_voucher_form_shortcode', 11);
-			//add_filter('widget_text', 'voucher_do_list_shortcode', 11);
-		}
 		// [voucher id="" preview=""]
 		add_shortcode( 'voucher', 'voucher_do_voucher_shortcode' );
 		// [voucherform id=""]
@@ -537,7 +532,7 @@ function vouchers_admin()
 			';
 		}
 		echo '
-		<p><a href="' . wp_nonce_url( "admin.php?page=vouchers&amp;download=emails", "voucherpress_download_csv" ) . '">' . __( "Download all registered email addresses", "voucherpress" ) . '</a></p>
+		<p><a href="' . wp_nonce_url( "admin.php?page=vouchers&amp;download=emails", "voucherpress_download_csv" ) . '" class="button">' . __( "Download all registered email addresses", "voucherpress" ) . '</a></p>
 		</div>';
 	
 	// if a voucher has been chosen
@@ -718,30 +713,40 @@ function voucherpress_edit_voucher_page()
 		
 		if ( $voucher->downloads > 0 ) {
 			echo __( "Downloads:", "voucherpress" ) . " " . $voucher->downloads;
-			echo ' | <a href="' . wp_nonce_url( "admin.php?page=vouchers&amp;download=emails&amp;voucher=" . $voucher->id, "voucherpress_download_csv" ) . '">' . __( "CSV", "voucherpress" ) . '</a>';
+			echo ' | <a href="' . wp_nonce_url( "admin.php?page=vouchers&amp;download=emails&amp;voucher=" . $voucher->id, "voucherpress_download_csv" ) . '" class="button">' . __( "CSV", "voucherpress" ) . '</a>';
 			echo ' | ';
 		}
 		
-		echo '<a href="#" id="showshortcodes">Shortcodes</a></span></h2>
+		echo '<a href="#" id="showshortcodes" class="button">Shortcodes</a></span></h2>
 		
 		<div class="hider" id="shortcodes">
 		
-		<h3>' . __( "Shortcode for this voucher:", "voucherpress" ) . ' <input type="text" value="[voucher id=&quot;' . $voucher->id . '&quot;]" /> = <a href="' . voucherpress_link( $voucher->guid ) . '">' . htmlspecialchars( stripslashes( $voucher->name ) ) . '</a></h3>
+		<h3>' . __( "Shortcode for this voucher:", "voucherpress" ) . ' <input type="text" value="[voucher id=&quot;' . $voucher->id . '&quot;]" /></h3>
+		<p><a href="' . voucherpress_link( $voucher->guid ) . '">' . htmlspecialchars( stripslashes( $voucher->name ) ) . '</a></p>
+		
+		<h3>' . __( "Shortcode for this voucher with description:", "voucherpress" ) . ' <input type="text" value="[voucher id=&quot;' . $voucher->id . '&quot; description=&quot;true&quot;]" /></h3>
+		<p><a href="' . voucherpress_link( $voucher->guid ) . '">' . htmlspecialchars( stripslashes( $voucher->name ) ) . '</a> ' . htmlspecialchars( stripslashes( $voucher->description ) ) . '</p>
 		
 		';
 		
 		if ( $voucher->require_email == "1" )
 		{
 		echo '
-		<h3>' . __( "Shortcode for this voucher registration form:", "voucherpress" ) . ' <input type="text" value="[voucherform id=&quot;' . $voucher->id . '&quot;]" /></h3>
+		<h3>' . __( "Shortcode for this voucher registration form:", "voucherpress" ) . '</h3>
+		<p><input type="text" value="[voucherform id=&quot;' . $voucher->id . '&quot;]" /></p>
 		';
 		}
 		
 		echo '
 		
-		<h3>' . __( "Shortcode for this voucher:", "voucherpress" ) . ' <input type="text" value="[voucher id=&quot;' . $voucher->id . '&quot; preview=&quot;true&quot;]" /> = <a href="' . voucherpress_link( $voucher->guid ) . '"><img src="' . get_option( "siteurl" ) . '/wp-content/plugins/voucherpress/templates/' . $voucher->template . '_thumb.jpg" alt="' . htmlspecialchars( stripslashes( $voucher->name ) ) . '" /></a></h3>
+		<h3>' . __( "Thumbnail for this voucher:", "voucherpress" ) . ' <input type="text" value="[voucher id=&quot;' . $voucher->id . '&quot; preview=&quot;true&quot;]" /></h3>
+		<p><a href="' . voucherpress_link( $voucher->guid ) . '"><img src="' . get_option( "siteurl" ) . '/wp-content/plugins/voucherpress/templates/' . $voucher->template . '_thumb.jpg" alt="' . htmlspecialchars( stripslashes( $voucher->name ) ) . '" /></a></p>
 		
-		<h3>' . __( "Link for this voucher:", "voucherpress" ) . ' <input type="text" value="' . voucherpress_link( $voucher->guid ) . '" /></h3>
+		<h3>' . __( "Thumbnail for this voucher with description:", "voucherpress" ) . ' <input type="text" value="[voucher id=&quot;' . $voucher->id . '&quot; preview=&quot;true&quot; description=&quot;true&quot;]" /></h3>
+		<p><a href="' . voucherpress_link( $voucher->guid ) . '"><img src="' . get_option( "siteurl" ) . '/wp-content/plugins/voucherpress/templates/' . $voucher->template . '_thumb.jpg" alt="' . htmlspecialchars( stripslashes( $voucher->name ) ) . '" /></a><br />' . htmlspecialchars( stripslashes( $voucher->description ) ) . '</p>
+		
+		<h3>' . __( "Link for this voucher:", "voucherpress" ) . '</h3>
+		<p><input type="text" value="' . voucherpress_link( $voucher->guid ) . '" /></p>
 		
 		</div>
 		';
@@ -1423,16 +1428,21 @@ function voucherpress_slug( $string ) {
 function voucher_do_voucher_shortcode( $atts ) {
 	extract( shortcode_atts( array( 
 		'id' => '',
-		'preview' => ''
+		'preview' => '',
+		'description' => 'false'
 	), $atts ) );
 	if ( $id != "" ) {
 		$voucher = voucherpress_get_voucher( $id );
 		if ( $voucher && ( ( $voucher->expiry == "" || (int)$voucher->expiry == 0 || (int)$voucher->expiry > time() ) ) && ( $voucher->startdate == "" || (int)$voucher->startdate == 0 || (int)$voucher->startdate < time() ) ) {
 			if ( $preview == 'true' ) {
-				return '<a href="' . voucherpress_link( $voucher->guid ) . '"><img src="' . get_option( "siteurl" ) . '/wp-content/plugins/voucherpress/templates/' . $voucher->template . '_thumb.jpg" alt="' . htmlspecialchars( $voucher->name ) . '" /></a>';
+				$r = '<a href="' . voucherpress_link( $voucher->guid ) . '"><img src="' . get_option( "siteurl" ) . '/wp-content/plugins/voucherpress/templates/' . $voucher->template . '_thumb.jpg" alt="' . htmlspecialchars( $voucher->name ) . '" /></a>';
 			} else {
-				return '<a href="' . voucherpress_link( $voucher->guid ) . '">' . htmlspecialchars( $voucher->name ) . '</a>';
+				$r = '<a href="' . voucherpress_link( $voucher->guid ) . '">' . htmlspecialchars( $voucher->name ) . '</a>';
 			}
+			if ( strtolower( $description ) == "true" ) {
+				$r .= ' ' . $voucher->description;
+			}
+			return $r;
 		} else {
 			$r = "<!-- The shortcode for voucher " . $id . " is displaying nothing because the voucher was not found, or the expiry date has passed, or the start date is still in the future";
 			if ( $voucher ) {
@@ -1464,7 +1474,10 @@ function voucher_do_voucher_form_shortcode( $atts ) {
 }
 
 // process a shortcode for a list of vouchers
-function voucher_do_list_shortcode() {
+function voucher_do_list_shortcode( $atts ) {
+	extract( shortcode_atts( array( 
+		'description' => 'false'
+	), $atts ) );
 	
 	$vouchers = voucherpress_get_vouchers();
 	if ( $vouchers && is_array( $vouchers ) && count( $vouchers ) > 0 ) {
@@ -1473,7 +1486,11 @@ function voucher_do_list_shortcode() {
 		
 		foreach( $vouchers as $voucher ) {
 		
-			$r .= '<li><a href="' . voucherpress_link( $voucher->guid ) . '">' . htmlspecialchars( $voucher->name ) . '</a></li>';
+			$r .= '<li><a href="' . voucherpress_link( $voucher->guid ) . '">' . htmlspecialchars( $voucher->name ) . '</a>';
+			if ( strtolower( $description ) == "true" ) {
+				$r .= "<br />" . $voucher->description;
+			}
+			$r .= '</li>';
 		
 		}
 		
@@ -1879,7 +1896,7 @@ function voucherpress_get_all_vouchers( $num = 25, $start = 0 ) {
 	$prefix = $wpdb->prefix;
 	if ( isset( $wpdb->base_prefix ) ) { $prefix = $wpdb->base_prefix; }
 	$sql = "select b.domain, b.path, v.id, v.name, v.`text`, v.terms, v.require_email, v.`limit`, v.live, v.startdate, v.expiry, v.guid, 
-(select count(d.id) from " . $prefix . "voucherpress_downloads d where d.voucherid = v.id) as downloads
+(select count(d.id) from " . $prefix . "voucherpress_downloads d where d.voucherid = v.id and d.downloaded > 0) as downloads
 from " . $prefix . "voucherpress_vouchers v
 inner join " . $wpdb->base_prefix . "blogs b on b.blog_id = v.blog_id
 where v.live = 1
@@ -1900,7 +1917,7 @@ function voucherpress_get_vouchers( $num = 25, $all=false ) {
 	$prefix = $wpdb->prefix;
 	if ( isset( $wpdb->base_prefix ) ) { $prefix = $wpdb->base_prefix; }
 	$sql = $wpdb->prepare( "select v.id, v.name, v.`text`, v.`description`, v.terms, v.require_email, v.`limit`, v.live, v.startdate, v.expiry, v.guid, 
-(select count(d.id) from " . $prefix . "voucherpress_downloads d where d.voucherid = v.id) as downloads
+(select count(d.id) from " . $prefix . "voucherpress_downloads d where d.voucherid = v.id and d.downloaded > 0) as downloads
 from " . $prefix . "voucherpress_vouchers v
 where (%s = '1' or v.live = 1)
 and (%s = '1' or (expiry = '' or expiry = 0 or expiry > %d))
@@ -1927,6 +1944,7 @@ inner join " . $prefix . "voucherpress_vouchers v on v.id = d.voucherid
 inner join " . $wpdb->base_prefix . "blogs b on b.blog_id = v.blog_id
 group by b.domain, b.path, v.id, v.name, v.`text`, v.terms, v.require_email, v.`limit`, v.live, v.expiry, v.guid
 where v.deleted = 0
+and d.downloaded > 0
 order by count(d.id) desc
 " . $limit . ";";
 	return $wpdb->get_results( $sql );
@@ -1946,6 +1964,7 @@ from " . $prefix . "voucherpress_downloads d
 inner join " . $prefix . "voucherpress_vouchers v on v.id = d.voucherid
 where v.blog_id = %d
 and v.deleted = 0
+and d.downloaded > 0
 group by v.id, v.name, v.`text`, v.terms, v.require_email, v.`limit`, v.live, v.expiry, v.guid
 order by count(d.id) desc
 " . $limit . ";", $blog_id );
@@ -1965,7 +1984,7 @@ function voucherpress_get_voucher( $voucher, $live = 1, $code = "", $unexpired =
 	if ( is_numeric( $voucher ) ) {
 		$sql = $wpdb->prepare( "select v.id, v.name, v.`text`, v.`description`, v.terms, v.font, v.template, v.require_email, v.`limit`, v.startdate, v.expiry, v.guid, v.live, '' as registered_email, '' as registered_name,
 		v.codestype, v.codeprefix, v.codesuffix, v.codelength, v.codes,
-		(select count(d.id) from " . $prefix . "voucherpress_downloads d where d.voucherid = v.id) as downloads
+		(select count(d.id) from " . $prefix . "voucherpress_downloads d where d.voucherid = v.id and d.downloaded > 0) as downloads
 		from " . $prefix . "voucherpress_vouchers v
 		where 
 		(%s = '0' or v.live = 1)
@@ -1982,7 +2001,7 @@ function voucherpress_get_voucher( $voucher, $live = 1, $code = "", $unexpired =
 		{
 			$sql = $wpdb->prepare( "select v.id, v.name, v.`text`, v.`description`, v.terms, v.font, v.template, v.require_email, v.`limit`, v.startdate, v.expiry, v.guid, v.live, r.email as registered_email, r.name as registered_name,
 			v.codestype, v.codeprefix, v.codesuffix, v.codelength, v.codes,
-			(select count(d.id) from " . $prefix . "voucherpress_downloads d where d.voucherid = v.id) as downloads
+			(select count(d.id) from " . $prefix . "voucherpress_downloads d where d.voucherid = v.id and d.downloaded > 0) as downloads
 			from " . $prefix . "voucherpress_vouchers v
 			left outer join " . $prefix . "voucherpress_downloads r on r.voucherid = v.id and r.guid = %s
 			where 
@@ -1996,7 +2015,7 @@ function voucherpress_get_voucher( $voucher, $live = 1, $code = "", $unexpired =
 		} else {
 			$sql = $wpdb->prepare( "select v.id, v.name, v.`text`, v.`description`, v.terms, v.font, v.template, v.require_email, v.`limit`, v.startdate, v.expiry, v.guid, v.live, '' as registered_email, '' as registered_name,
 			v.codestype, v.codeprefix, v.codesuffix, v.codelength, v.codes,
-			(select count(d.id) from " . $prefix . "voucherpress_downloads d where d.voucherid = v.id) as downloads
+			(select count(d.id) from " . $prefix . "voucherpress_downloads d where d.voucherid = v.id and d.downloaded > 0) as downloads
 			from " . $prefix . "voucherpress_vouchers v
 			where 
 			(%s = '0' or v.live = 1)
@@ -2023,7 +2042,7 @@ function voucherpress_voucher_exists( $guid ) {
 	$prefix = $wpdb->prefix;
 	if ( isset( $wpdb->base_prefix ) ) { $prefix = $wpdb->base_prefix; }
 	$sql = $wpdb->prepare( "select v.id, v.`limit`,
-	(select count(d.id) from " . $prefix . "voucherpress_downloads d where d.voucherid = v.id) as downloads
+	(select count(d.id) from " . $prefix . "voucherpress_downloads d where d.voucherid = v.id and d.downloaded > 0) as downloads
 	from " . $prefix . "voucherpress_vouchers v
 	where 
 	v.guid = %s
@@ -2430,7 +2449,7 @@ function voucherpress_download_guid_is_valid( $voucher_guid, $download_guid ) {
 
 			// a limit has been set
 			if ( (int)$row->limit != 0 ) {
-				$sql = $wpdb->prepare( "select count(id) from " . $prefix . "voucherpress_downloads where voucherid = %d", $row->id );
+				$sql = $wpdb->prepare( "select count(id) from " . $prefix . "voucherpress_downloads where voucherid = %d and downloaded > 0", $row->id );
 				$downloads = $wpdb->get_var( $sql );
 				// if the limit has been reached
 				if ( (int)$downloads >= (int)$row->limit )	{
@@ -2520,7 +2539,7 @@ function voucherpress_create_code( $voucherid ) {
 	$prefix = $wpdb->prefix;
 	if ( isset( $wpdb->base_prefix ) ) { $prefix = $wpdb->base_prefix; }
 	// get the codes type for this voucher
-	$sql = $wpdb->prepare( "select v.codestype, v.codeprefix, v.codesuffix, v.codelength, v.codes, count(d.id) as downloads from " . $prefix . "voucherpress_vouchers v left outer join " . $prefix . "voucherpress_downloads d on d.voucherid = v.id where v.id = %d and v.deleted = 0 group by v.codestype, v.codeprefix, v.codesuffix, v.codelength, v.codes;", $voucherid );
+	$sql = $wpdb->prepare( "select v.codestype, v.codeprefix, v.codesuffix, v.codelength, v.codes, count(d.id) as downloads from " . $prefix . "voucherpress_vouchers v left outer join " . $prefix . "voucherpress_downloads d on d.voucherid = v.id and d.downloaded > 0 where v.id = %d and v.deleted = 0 group by v.codestype, v.codeprefix, v.codesuffix, v.codelength, v.codes;", $voucherid );
 	$voucher_codestype = $wpdb->get_row( $sql );
 	// using custom codes
 	if ( $voucher_codestype->codestype == "custom" ) {
