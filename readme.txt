@@ -135,7 +135,7 @@ Not at the moment, but I'm thinking about how to make that possible.
 
 == Changelog ==
 
-= 1.4 (2014/02/28) =
+= 1.5 (2014/02/28) =
 
 Added page to list all vouchers
 Changed a bit of text to be clearer
