@@ -115,6 +115,12 @@ color: #666;
 float: left;
 width: 16em;
 }
+#voucherpress .no {
+color: #DD3D36;
+}
+#voucherpress .yes {
+color: #569E1F;
+}
 .times {
 font-family: 'Times New Roman', Times, serif;
 }

@@ -387,7 +387,8 @@ function voucherpress_create_tables() {
 // add the menu items
 function voucherpress_add_admin()
 {
-	add_menu_page( __( "Vouchers", "voucherpress" ), __( "Vouchers", "voucherpress" ), "publish_posts", "vouchers", "vouchers_admin" ); 
+	add_menu_page( __( "Vouchers", "voucherpress" ), __( "Vouchers", "voucherpress" ), "publish_posts", "vouchers", "vouchers_admin" );
+	add_submenu_page( "vouchers", __( "All vouchers", "voucherpress" ), __( "All vouchers", "voucherpress" ), "publish_posts", "vouchers-list", "vouchers_list" );
 	add_submenu_page( "vouchers", __( "Create a voucher", "voucherpress" ), __( "Create", "voucherpress" ), "publish_posts", "vouchers-create", "voucherpress_create_voucher_page" );
 	// the reports page has not yet been developed
 	//add_submenu_page( "vouchers", __( "Voucher reports", "voucherpress" ), __( "Reports", "voucherpress" ), "publish_posts", "vouchers-reports", "voucherpress_reports_page" ); 
@@ -452,7 +453,7 @@ function voucherpress_site_admin()
 		voucherpress_table_footer();
 	} else {
 		echo '
-		<p>' . __( 'No vouchers found. <a href="admin.php?page=vouchers-create">Create your first voucher here.</a>', "voucherpress" ) . '</p>
+		<p>' . __( 'No voucher downloads found. <a href="admin.php?page=vouchers-create">Create a voucher here.</a>', "voucherpress" ) . '</p>
 		';
 	}
 	echo '
@@ -500,6 +501,9 @@ function vouchers_admin()
 				';
 			}
 			voucherpress_table_footer();
+			echo '
+			<p>' . __( '<a href="admin.php?page=vouchers-list">See all vouchers here.</a>', "voucherpress" ) . '</p>
+			';
 		} else {
 			echo '
 			<p>' . __( 'No vouchers found. <a href="admin.php?page=vouchers-create">Create your first voucher here.</a>', "voucherpress" ) . '</p>
@@ -526,13 +530,15 @@ function vouchers_admin()
 				';
 			}
 			voucherpress_table_footer();
+			echo '
+			<p><a href="' . wp_nonce_url( "admin.php?page=vouchers&amp;download=emails", "voucherpress_download_csv" ) . '" class="button">' . __( "Download all registered email addresses", "voucherpress" ) . '</a></p>
+			';
 		} else {
 			echo '
-			<p>' . __( 'No vouchers found. <a href="admin.php?page=vouchers-create">Create your first voucher here.</a>', "voucherpress" ) . '</p>
+			<p>' . __( 'No voucher downloads found. <a href="admin.php?page=vouchers-create">Create a voucher here.</a>', "voucherpress" ) . '</p>
 			';
 		}
 		echo '
-		<p><a href="' . wp_nonce_url( "admin.php?page=vouchers&amp;download=emails", "voucherpress_download_csv" ) . '" class="button">' . __( "Download all registered email addresses", "voucherpress" ) . '</a></p>
 		</div>';
 	
 	// if a voucher has been chosen
@@ -543,6 +549,62 @@ function vouchers_admin()
 	}
 	
 	voucherpress_report_footer();
+}
+
+// the list of all vouchers
+function vouchers_list()
+{
+    voucherpress_report_header();
+	
+	echo '
+	<h2>' . __( "All vouchers", "voucherpress" ) . '</h2>
+	';
+    
+	$perpage = 25;
+    $pagenum = isset( $_GET['pagenum'] ) ? absint( $_GET['pagenum'] ) : 1;
+    $start = ($perpage * $pagenum) - $perpage;
+    
+    $vouchers = voucherpress_get_vouchers( $perpage, true, $start );
+    if ( $vouchers && is_array( $vouchers ) && count( $vouchers ) > 0 )
+    {
+            $totalvouchers = voucherpress_get_vouchers_count();
+        
+            voucherpress_table_header( array( "Name", "Live", "Start date", "Expiry", "Limit", "Downloads", "Email required" ) );
+            foreach( $vouchers as $voucher )
+            {
+                    echo '
+                    <tr>
+                            <td><a href="admin.php?page=vouchers&amp;id=' . $voucher->id . '">' . $voucher->name . '</a></td>
+							<td>' . voucherpress_yes_no( $voucher->live ) . '</td>
+							<td>' . voucherpress_date( $voucher->startdate ) . '</td>
+							<td>' . voucherpress_date( $voucher->expiry ) . '</td>
+							<td>' . $voucher->limit . '</td>
+                            <td>' . $voucher->downloads . '</td>
+                            <td>' . voucherpress_yes_no( $voucher->require_email ) . '</td>
+                    </tr>
+                    ';
+            }
+            voucherpress_table_footer();
+            
+            $page_links = paginate_links( array(
+                'base' => add_query_arg( 'pagenum', '%#%' ),
+                'format' => '',
+                'prev_text' => __( '&laquo;', 'voucherpress' ),
+                'next_text' => __( '&raquo;', 'voucherpress' ),
+                'total' => ( $totalvouchers / $perpage ),
+                'current' => $pagenum
+            ) );
+
+            if ( $page_links ) {
+                echo '<div class="tablenav"><div class="tablenav-pages" style="margin: 1em 0">' . $page_links . '</div></div>';
+            }
+    } else {
+            echo '
+            <p>' . __( 'No vouchers found. <a href="admin.php?page=vouchers-create">Create your first voucher here.</a>', "voucherpress" ) . '</p>
+            ';
+    }
+    
+    voucherpress_report_footer();
 }
 
 // show the create voucher page
@@ -1409,10 +1471,19 @@ function voucherpress_yes_no( $val )
 {
 	if ( !$val || $val == "" || $val == "0" )
 	{
-		return __( "No", "voucherpress" );
+		return '<span class="no">' . __( "No", "voucherpress" ) . '</span>';
 	} else {
-		return __( "Yes", "voucherpress" );
+		return '<span class="yes">' . __( "Yes", "voucherpress" ) . '</span>';
 	}
+}
+
+// display a date
+function voucherpress_date( $date ) {
+	if ( $date == "" || $date == "0" ) {
+		return "";
+	}
+	
+	return date( "Y/m/d", $date );
 }
 
 // create slug
@@ -1906,14 +1977,22 @@ order by v.time desc
 	return $wpdb->get_results( $sql );
 }
 
+// get the number of vouchers in the table
+function voucherpress_get_vouchers_count() {
+    global $wpdb;
+    $prefix = $wpdb->prefix;
+    $sql = "select count(id) from " . $prefix . "voucherpress_vouchers;";
+    return $wpdb->get_var($sql);
+}
+
 // get a list of vouchers
-function voucherpress_get_vouchers( $num = 25, $all=false ) {
+function voucherpress_get_vouchers( $num = 25, $all=false, $start=0 ) {
 	$blog_id = voucherpress_blog_id();
 	global $wpdb;
 	$showall = "0";
 	if ($all) { $showall = "1"; }
-	$limit = "limit " . (int)$num;
-	if ($num == 0) { $limit = ""; }
+	$limit = "limit " . (int)$start . "," . (int)$num;
+	if ((int)$num == 0) { $limit = ""; }
 	$prefix = $wpdb->prefix;
 	if ( isset( $wpdb->base_prefix ) ) { $prefix = $wpdb->base_prefix; }
 	$sql = $wpdb->prepare( "select v.id, v.name, v.`text`, v.`description`, v.terms, v.require_email, v.`limit`, v.live, v.startdate, v.expiry, v.guid, 
