@@ -1763,11 +1763,28 @@ function voucherpress_preview_voucher( $template, $font, $name, $text, $terms ) 
 
 	global $current_user;
 	
-	$voucher->template = $template;
-	$voucher->font = $font;
+	$voucher = new stdClass;
+	$voucher->id = 0;
 	$voucher->name = $name;
 	$voucher->text = $text;
+	$voucher->description = "Preview description";
 	$voucher->terms = $terms;
+	$voucher->font = $font;
+	$voucher->template = $template;
+	$voucher->require_email = 0;
+	$voucher->limit = 0;
+	$voucher->startdate = 0;
+	$voucher->expiry = 0;
+	$voucher->guid = 'GUID';
+	$voucher->live = 1;
+	$voucher->registered_email = "user@domain.com";
+	$voucher->registered_name = "Preview Name";
+	$voucher->codestype = "random";
+	$voucher->codeprefix = "";
+	$voucher->codesuffix = "";
+	$voucher->codelength = 6;
+	$voucher->codes = "";
+	$voucher->downloads = 0;
 	
 	voucherpress_render_voucher( $voucher, "[" . __( "Voucher code inserted here", "voucherpress" ) . "]" );
 	
