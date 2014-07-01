@@ -3,20 +3,20 @@
 /**
  * @package VoucherPress
  * @author Chris Taylor
- * @version 1.5.2
+ * @version 1.5.3
  */
 /*
   Plugin Name: VoucherPress
   Plugin URI: http://www.stillbreathing.co.uk/wordpress/voucherpress/
   Description: VoucherPress allows you to offer downloadable, printable vouchers from your Wordpress site. Vouchers can be available to anyone, or require a name and email address before they can be downloaded.
   Author: Chris Taylor
-  Version: 1.5.2
+  Version: 1.5.3
   Author URI: http://www.stillbreathing.co.uk/
  */
 
 // set the current version
 function voucherpress_current_version() {
-    return "1.5.2";
+    return "1.5.3";
 }
 
 //define("VOUCHERPRESSDEV", true);
@@ -77,7 +77,7 @@ function voucherpress_template() {
 
         // check the template exists
         if ( voucherpress_voucher_exists( $voucher_guid ) ) {
-            // if the email addres supplied is valid
+            // if the email address supplied is valid
             if ( voucherpress_download_guid_is_valid( $voucher_guid, $download_guid ) != "unregistered" ) {
                 // download the voucher
                 voucherpress_download_voucher( $voucher_guid, $download_guid );
@@ -89,6 +89,11 @@ function voucherpress_template() {
         }
         voucherpress_404();
     }
+}
+
+// show the 'headers already sent' message
+function voucherpress_headers_sent() {
+    wp_die( __( "Sorry, your file cannot be generated. For more information please <a href=\"http://wordpress.org/support/topic/acrobat-could-not-open-pdf-because-it-is-either-not-a-supported-file-type\">see this thread in the support forums</a>.", "voucherpress" ) );
 }
 
 // show a 404 page
@@ -2163,14 +2168,24 @@ function voucherpress_download_voucher( $voucher_guid, $download_guid = "" ) {
         // see if this voucher can be downloaded
         $valid = voucherpress_download_guid_is_valid( $voucher_guid, $download_guid );
         if ( "valid" === $valid ) {
+            
+            // this is one of the most commonly reported errors with VoucherPress - other plugins 
+            // sending whitespace - so protect against it here
+            if ( strlen( ob_get_contents() ) == 0 ) {
+                
+                // set this download as completed
+                $code = voucherpress_create_download_code( $voucher->id, $download_guid );
 
-            // set this download as completed
-            $code = voucherpress_create_download_code( $voucher->id, $download_guid );
+                do_action( "voucherpress_download", $voucher->id, $voucher->name, $code );
 
-            do_action( "voucherpress_download", $voucher->id, $voucher->name, $code );
-
-            // render the voucher
-            voucherpress_render_voucher( $voucher, $code );
+                // render the voucher
+                voucherpress_render_voucher( $voucher, $code );
+            
+            } else {
+            
+                voucherpress_headers_sent();
+            
+            }
         } else if ( "unavailable" === $valid ) {
 
             // this voucher is not available
