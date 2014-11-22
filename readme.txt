@@ -3,8 +3,8 @@ Contributors: mrwiblog, Christian Serron (http://twitter.com/cserron)
 Donate link: http://www.stillbreathing.co.uk/donate/
 Tags: buddypress, voucher, vouchers, pdf, print, download, offer, code, special, coupon, ticket, token, 
 Requires at least: 2.8
-Tested up to: 3.8.1
-Stable tag: 1.5.3
+Tested up to: 4.0.1
+Stable tag: 1.5.4
 
 VoucherPress is a Wordpress plugin that allows you to give downloadable, printable vouchers/tickets/coupons/tokens in PDF format away on your site.
 
@@ -134,6 +134,10 @@ Not at the moment, but I'm thinking about how to make that possible.
 5. All the default templates
 
 == Changelog ==
+
+= 1.5.4 (2014/11/22) =
+
+Fixed error encountered with some browsers who send two requests to download a file (the first one is a HEAD request). Thanks to Susan Grant for reporting the error.
 
 = 1.5.3 (2014/07/01) =
 
