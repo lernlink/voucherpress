@@ -3,20 +3,20 @@
 /**
  * @package VoucherPress
  * @author Chris Taylor
- * @version 1.5.4
+ * @version 1.5.5
  */
 /*
   Plugin Name: VoucherPress
   Plugin URI: http://www.stillbreathing.co.uk/wordpress/voucherpress/
   Description: VoucherPress allows you to offer downloadable, printable vouchers from your Wordpress site. Vouchers can be available to anyone, or require a name and email address before they can be downloaded.
   Author: Chris Taylor
-  Version: 1.5.4
+  Version: 1.5.5
   Author URI: http://www.stillbreathing.co.uk/
  */
 
 // set the current version
 function voucherpress_current_version() {
-    return "1.5.4";
+    return "1.5.5";
 }
 
 //define("VOUCHERPRESSDEV", true);
@@ -265,10 +265,10 @@ function voucherpress_check_install() {
         voucherpress_insert_templates();
     }
     // check the templates directory is writeable
-    if ( !@is_writable( ABSPATH . "/wp-content/plugins/voucherpress/templates/" ) ) {
+    if ( !@is_writable( plugin_dir_path( __FILE__ ) . "templates/" ) ) {
         echo '
 		<div id="message" class="warning">
-			<p><strong>' . __( "The system does not have write permissions on the folder (" . ABSPATH . "/wp-content/plugins/voucherpress/templates/) where your custom templates are stored. You may not be able to upload your own templates. Please contact your system administrator for more information.", "voucherpress" ) . '</strong></p>
+			<p><strong>' . __( "The system does not have write permissions on the folder (" . plugin_dir_path( __FILE__ ) . "templates/) where your custom templates are stored. You may not be able to upload your own templates. Please contact your system administrator for more information.", "voucherpress" ) . '</strong></p>
 		</div>
 		';
     }
@@ -1884,7 +1884,7 @@ function voucherpress_upload_template( $id, $file ) {
         // check voucherpress is installed correctly
         voucherpress_check_install();
 
-        $path = ABSPATH . "/wp-content/plugins/voucherpress/templates/";
+        $path = plugin_dir_path( __FILE__ ) . "templates/";
 
         // move the temporary file to the full-size image (1181 x 532 px @ 150dpi)
         $fullpath = $path . $id . ".jpg";
@@ -2166,7 +2166,7 @@ function voucherpress_download_voucher( $voucher_guid, $download_guid = "" ) {
     $voucher = voucherpress_get_voucher( $voucher_guid, 1, $download_guid );
     if ( is_object( $voucher ) && 1 == $voucher->live && "" != $voucher->id && "" != $voucher->name && "" != $voucher->text && "" != $voucher->terms && "" != $voucher->template && voucherpress_template_exists( $voucher->template ) ) {
 	
-		if ( strtolower( $_SERVER['REQUEST_METHOD'] ) == 'head' ) {
+		if ( strtolower( $_SERVER['REQUEST_METHOD'] ) == 'post' || strtolower( $_SERVER['REQUEST_METHOD'] ) == 'get' ) {
 			$slug = voucherpress_slug( $voucher->name );
 			header( "Expires: Mon, 26 Jul 1997 05:00:00 GMT" );
 			header( "Last-Modified: " . gmdate( "D, d M Y H:i:s" ) . " GMT" );
@@ -2230,6 +2230,7 @@ function voucherpress_download_voucher( $voucher_guid, $download_guid = "" ) {
         // this voucher is not available
         print "<!-- The voucher could not be found -->";
         voucherpress_404( false );
+		//exit();
     }
 }
 
@@ -2262,7 +2263,7 @@ function voucherpress_render_voucher( $voucher, $code ) {
         $pdf = new voucherpress_pdf( PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false );
 
         // set the properties
-        $pdf->voucher_image = ABSPATH . 'wp-content/plugins/voucherpress/templates/' . $voucher->template . '.jpg';
+        $pdf->voucher_image = plugin_dir_path( __FILE__ ) . 'templates/' . $voucher->template . '.jpg';
         $pdf->voucher_image_w = 200;
         $pdf->voucher_image_h = 90;
         $pdf->voucher_image_dpi = 150;
@@ -2352,10 +2353,11 @@ function voucherpress_render_voucher_thumb( $voucher, $code ) {
 
 // check a template exists
 function voucherpress_template_exists( $template ) {
-    $file = ABSPATH . "wp-content/plugins/voucherpress/templates/" . $template . ".jpg";
+    $file = plugin_dir_path( __FILE__ ) . "templates/" . $template . ".jpg";
     if ( file_exists( $file ) ) {
         return true;
     }
+	//print "<!-- Template does not exist at " . $file . " -->";
     return false;
 }
 
