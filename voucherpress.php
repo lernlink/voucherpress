@@ -3,20 +3,20 @@
 /**
  * @package VoucherPress
  * @author Chris Taylor
- * @version 1.5.5
+ * @version 1.5.6
  */
 /*
   Plugin Name: VoucherPress
   Plugin URI: http://www.stillbreathing.co.uk/wordpress/voucherpress/
   Description: VoucherPress allows you to offer downloadable, printable vouchers from your Wordpress site. Vouchers can be available to anyone, or require a name and email address before they can be downloaded.
   Author: Chris Taylor
-  Version: 1.5.5
+  Version: 1.5.6
   Author URI: http://www.stillbreathing.co.uk/
  */
 
 // set the current version
 function voucherpress_current_version() {
-    return "1.5.5";
+    return "1.5.6";
 }
 
 //define("VOUCHERPRESSDEV", true);
@@ -2166,7 +2166,8 @@ function voucherpress_download_voucher( $voucher_guid, $download_guid = "" ) {
     $voucher = voucherpress_get_voucher( $voucher_guid, 1, $download_guid );
     if ( is_object( $voucher ) && 1 == $voucher->live && "" != $voucher->id && "" != $voucher->name && "" != $voucher->text && "" != $voucher->terms && "" != $voucher->template && voucherpress_template_exists( $voucher->template ) ) {
 	
-		if ( strtolower( $_SERVER['REQUEST_METHOD'] ) == 'post' || strtolower( $_SERVER['REQUEST_METHOD'] ) == 'get' ) {
+		// if this is not a standard POST/GET request then just return the headers
+		if ( strtolower( $_SERVER['REQUEST_METHOD'] ) != 'post' && strtolower( $_SERVER['REQUEST_METHOD'] ) != 'get' ) {
 			$slug = voucherpress_slug( $voucher->name );
 			header( "Expires: Mon, 26 Jul 1997 05:00:00 GMT" );
 			header( "Last-Modified: " . gmdate( "D, d M Y H:i:s" ) . " GMT" );

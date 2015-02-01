@@ -4,7 +4,7 @@ Donate link: http://www.stillbreathing.co.uk/donate/
 Tags: buddypress, voucher, vouchers, pdf, print, download, offer, code, special, coupon, ticket, token, 
 Requires at least: 2.8
 Tested up to: 4.0.1
-Stable tag: 1.5.5
+Stable tag: 1.5.6
 
 VoucherPress is a Wordpress plugin that allows you to give downloadable, printable vouchers/tickets/coupons/tokens in PDF format away on your site.
 
@@ -96,7 +96,7 @@ And you can also show the form for people to enter their name and email address 
 
 [voucherform id="123"]
 
-The shortcodes for any voucher can be found on the edit screen for that voucher.
+The shortcodes for any voucher can be found on the edit screen for that voucher. Just click the 'Shortcodes' button.
 
 == Frequently Asked Questions ==
 
@@ -107,9 +107,9 @@ This is normally because PHP isn't given enough memory to create print-resolutio
 Fatal error:  Out of memory (allocated 31981568) (tried to allocate 456135 bytes) in
 /some/thing/here/wp-content/plugins/voucherpress/tcpdf/tcpdf.php
 
-Speak to your hosts or system administrator to give PHP more memory. I'm alo working on a way for VoucherPress itself to work around this problem.
+Speak to your hosts or system administrator to give PHP more memory. I'm also working on a way for VoucherPress itself to work around this problem.
 
-= Why i the plugin so big? It's over 20 MB! =
+= Why is the plugin so big? It's over 20 MB! =
 
 I know, and I'm sorry, but the TCPDF sytem which generates the PDF documents is pretty big. And there's 40+ default layout templates which aren't small either.
 
@@ -123,7 +123,7 @@ Not at the moment, but I'm sure it could if those e-commerce plugin developers w
 
 = Can I add my own codes, for example if I want to give away numbered coupons? =
 
-Not at the moment, but I'm thinking about how to make that possible.
+Yes, you can add your own codes for any voucher. When people download the voucher they will be given one of your codes (in the same order you entered them). Once one of your codes is used on a voucher it can't be used again.
 
 == Screenshots ==
 
@@ -134,6 +134,10 @@ Not at the moment, but I'm thinking about how to make that possible.
 5. All the default templates
 
 == Changelog ==
+
+= 1.5.6 (2015/02/01) =
+
+Fixed bug with HTTP method check. Updated readme file.
 
 = 1.5.5 (2015/01/31) =
 
